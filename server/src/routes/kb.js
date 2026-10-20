@@ -40,7 +40,7 @@ router.get('/:kbId', loadKb, (req, res) => {
 
 // Update KB settings
 router.put('/:kbId', loadKb, (req, res) => {
-  const { name, description, chunk_size, chunk_overlap, top_k, system_prompt, welcome_message, public_enabled } = req.body || {};
+  const { name, description, chunk_size, chunk_overlap, top_k, system_prompt, welcome_message, public_enabled, web_fallback } = req.body || {};
   const kb = req.kb;
   db.prepare(`
     UPDATE knowledge_bases SET
@@ -51,7 +51,8 @@ router.put('/:kbId', loadKb, (req, res) => {
       top_k = COALESCE(?, top_k),
       system_prompt = COALESCE(?, system_prompt),
       welcome_message = COALESCE(?, welcome_message),
-      public_enabled = COALESCE(?, public_enabled)
+      public_enabled = COALESCE(?, public_enabled),
+      web_fallback = COALESCE(?, web_fallback)
     WHERE id = ?
   `).run(
     name?.trim() || null, description ?? null,
@@ -60,6 +61,7 @@ router.put('/:kbId', loadKb, (req, res) => {
     top_k ? Math.min(20, Math.max(1, Number(top_k))) : null,
     system_prompt ?? null, welcome_message ?? null,
     public_enabled != null ? (public_enabled ? 1 : 0) : null,
+    web_fallback != null ? (web_fallback ? 1 : 0) : null,
     kb.id
   );
   res.json({ kb: db.prepare('SELECT * FROM knowledge_bases WHERE id = ?').get(kb.id) });

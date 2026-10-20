@@ -60,7 +60,7 @@ function ChatTab({ kb }) {
   const bottomRef = useRef(null);
 
   const loadConvos = () => authFetch(`/api/kb/${kb.id}/chat/conversations`).then((r) => r.json())
-    .then((d) => { setConvos(d.conversations); setLlmInfo({ llm: d.llm, model: d.model }); })
+    .then((d) => { setConvos(d.conversations); setLlmInfo({ llm: d.llm, model: d.model, provider: d.provider }); })
     .catch((e) => toast.error(e.message));
   useEffect(() => { loadConvos(); }, [kb.id]);
 
@@ -158,9 +158,13 @@ function ChatTab({ kb }) {
       </div>
 
       <div className="flex-1 card flex flex-col overflow-hidden">
-        {!llmInfo.llm && (
+        {!llmInfo.llm ? (
           <div className="px-5 py-2.5 bg-amber-50 border-b border-amber-100 text-xs text-amber-800">
-            ⚡ <strong>Demo mode:</strong> answers are extracted from your documents. Set <code>LLM_API_KEY</code> for full generative answers.
+            ⚡ <strong>Demo mode:</strong> answers are extracted from your documents. Set <code>LLM_PROVIDER</code> (ollama, openai, groq…) for generative answers.
+          </div>
+        ) : (
+          <div className="px-5 py-2.5 bg-violet-50 border-b border-violet-100 text-xs text-violet-800">
+            🧠 Generative answers via <strong>{llmInfo.provider || llmInfo.model}</strong> — grounded in your documents, cited.
           </div>
         )}
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
@@ -233,6 +237,81 @@ function ChatTab({ kb }) {
   );
 }
 
+// ---------- AUTO-INGEST SOURCES (autopilot: learns from your website by itself) ----------
+function SourcesManager({ kb }) {
+  const toast = useToast();
+  const [sources, setSources] = useState([]);
+  const [url, setUrl] = useState('');
+  const [type, setType] = useState('sitemap');
+  const [busy, setBusy] = useState(false);
+
+  const load = () => authFetch(`/api/kb/${kb.id}/sources`).then((r) => r.json()).then((d) => setSources(d.sources)).catch(() => {});
+  useEffect(() => { load(); const t = setInterval(load, 10000); return () => clearInterval(t); }, [kb.id]);
+
+  async function add(e) {
+    e.preventDefault();
+    if (!url.trim()) return;
+    setBusy(true);
+    try {
+      const res = await authFetch(`/api/kb/${kb.id}/sources`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url, type }),
+      });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error);
+      setUrl(''); toast.success('Source added — first crawl started'); load();
+    } catch (e2) { toast.error(e2.message); }
+    setBusy(false);
+  }
+
+  async function runNow(id) {
+    toast.info('Crawling…');
+    const res = await authFetch(`/api/kb/${kb.id}/sources/${id}/run`, { method: 'POST' });
+    const d = await res.json();
+    if (d.ok) toast.success(`Crawl done: ${d.result.found} pages, ${d.result.fresh} new, ${d.result.updated} updated`);
+    load();
+  }
+
+  async function remove(id) {
+    if (!confirm('Stop auto-ingesting from this source? (Already-imported pages stay.)')) return;
+    await authFetch(`/api/kb/${kb.id}/sources/${id}`, { method: 'DELETE' });
+    load();
+  }
+
+  return (
+    <div className="card card-pad mb-6" style={{ borderColor: '#c4b5fd', background: 'linear-gradient(180deg,#faf8ff,#fff)' }}>
+      <div className="flex items-center gap-2 mb-1">
+        <h3 className="font-bold">🤖 Autopilot sources</h3>
+        <span className="badge badge-violet">self-learning</span>
+      </div>
+      <p className="text-sm text-slate-500 mb-4">Point AskBase at your website's sitemap. It crawls new and changed pages on its own every day — no uploads, no maintenance.</p>
+      <form onSubmit={add} className="flex gap-2 mb-4 flex-wrap">
+        <select className="input !w-auto" value={type} onChange={(e) => setType(e.target.value)}>
+          <option value="sitemap">Sitemap</option>
+          <option value="page">Single page</option>
+        </select>
+        <input className="input !w-auto flex-1 min-w-[220px]" value={url} onChange={(e) => setUrl(e.target.value)}
+          placeholder={type === 'sitemap' ? 'https://yoursite.com/sitemap.xml' : 'https://yoursite.com/docs/getting-started'} />
+        <button className="btn btn-primary btn-sm" disabled={busy}>{busy ? 'Adding…' : 'Add source'}</button>
+      </form>
+      {sources.map((s) => (
+        <div key={s.id} className="flex items-center justify-between gap-3 py-2.5 border-t border-violet-100 text-sm">
+          <div className="min-w-0">
+            <p className="font-medium text-slate-700 truncate">🔗 {s.url}</p>
+            <p className="text-xs text-slate-400">
+              {s.last_run_at ? `last crawl ${s.last_run_at.slice(0, 16).replace('T', ' ')} · ${s.last_status}` : 'first crawl running…'}
+            </p>
+          </div>
+          <div className="flex gap-1 shrink-0">
+            <button className="btn btn-ghost btn-sm" onClick={() => runNow(s.id)} title="Crawl now">↻</button>
+            <button className="btn btn-ghost btn-sm" onClick={() => remove(s.id)} title="Remove">✕</button>
+          </div>
+        </div>
+      ))}
+      {sources.length === 0 && <p className="text-xs text-slate-400">No autopilot sources yet — add your sitemap above.</p>}
+    </div>
+  );
+}
+
 // ---------- DOCUMENTS ----------
 function DocsTab({ kb }) {
   const toast = useToast();
@@ -287,6 +366,7 @@ function DocsTab({ kb }) {
 
   return (
     <div>
+      <SourcesManager kb={kb} />
       <div className="grid md:grid-cols-2 gap-4 mb-6">
         <div className={`dropzone ${drag ? 'drag' : ''}`}
           onClick={() => fileRef.current?.click()}
@@ -332,6 +412,99 @@ function DocsTab({ kb }) {
         {docs?.length === 0 && <p className="text-center text-slate-400 py-10 text-sm">No documents yet — upload your first one above.</p>}
         {docs === null && <div className="p-6"><Skeleton className="h-10" /></div>}
       </div>
+    </div>
+  );
+}
+
+// ---------- INSIGHTS (autopilot: what it doesn't know yet) ----------
+function InsightsTab({ kb }) {
+  const toast = useToast();
+  const [data, setData] = useState(null);
+  const [teaching, setTeaching] = useState(null);
+  const [answer, setAnswer] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  const load = () => authFetch(`/api/kb/${kb.id}/autopilot/insights`).then((r) => r.json()).then(setData).catch((e) => toast.error(e.message));
+  useEffect(() => { load(); }, [kb.id]);
+
+  async function teach(e) {
+    e.preventDefault();
+    if (!answer.trim()) return toast.error('Write the answer first');
+    setBusy(true);
+    try {
+      const res = await authFetch(`/api/kb/${kb.id}/autopilot/teach`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: teaching.question, answer }),
+      });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error);
+      toast.success('Learned! It can answer this from now on.');
+      setTeaching(null); setAnswer(''); load();
+    } catch (e2) { toast.error(e2.message); }
+    setBusy(false);
+  }
+
+  if (!data) return <Skeleton className="h-64" />;
+  return (
+    <div>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+        <Stat label="Unanswered questions" value={data.unansweredTotal} sub="grouped below — teach it in one click" />
+        <Stat label="Answers taught" value={data.learnedChunks} sub="chunks in the Learned answers doc" />
+        <Stat label="Dead documents" value={data.deadDocs.length} sub="zero citations in 30 days" />
+      </div>
+
+      <div className="card card-pad mb-4">
+        <h3 className="font-bold mb-1">❓ Questions it couldn't answer</h3>
+        <p className="text-sm text-slate-500 mb-4">This is the system telling you what to teach it. One click per gap — no prompt engineering, no retraining.</p>
+        {data.unanswered.length === 0 ? (
+          <p className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-3">🎉 Nothing unanswered — your knowledge base covers everything asked so far.</p>
+        ) : data.unanswered.map((u, i) => (
+          <div key={i} className="flex items-center justify-between gap-4 py-3 border-b border-slate-50 last:border-0">
+            <div className="min-w-0">
+              <p className="font-medium text-slate-800 text-sm">💬 {u.question}</p>
+              <p className="text-xs text-slate-400 mt-0.5">asked {u.count}× · latest {u.latest?.slice(0, 10)}</p>
+            </div>
+            <button className="btn btn-primary btn-sm shrink-0" onClick={() => { setTeaching(u); setAnswer(''); }}>
+              Teach it →
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {data.deadDocs.length > 0 && (
+        <div className="card card-pad">
+          <h3 className="font-bold mb-1">🪦 Dead content</h3>
+          <p className="text-sm text-slate-500 mb-3">Never cited in 30 days. Consider pruning to keep retrieval sharp.</p>
+          {data.deadDocs.map((d) => (
+            <div key={d.id} className="flex justify-between py-2 border-b border-slate-50 last:border-0 text-sm">
+              <span className="text-slate-600">📄 {d.filename}</span>
+              <span className="text-xs text-slate-400">{d.chunk_count} chunks</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {teaching && (
+        <Modal onClose={() => setTeaching(null)} wide>
+          <div className="p-6">
+            <h3 className="font-bold text-lg mb-1">🧠 Teach it</h3>
+            <p className="text-sm text-slate-500 mb-4">Write the correct answer once — it's embedded into the knowledge base instantly and cited like any other document.</p>
+            <div className="bg-violet-50 border border-violet-100 rounded-xl px-4 py-3 text-sm font-medium text-violet-900 mb-4">
+              💬 {teaching.question}
+            </div>
+            <form onSubmit={teach}>
+              <Field label="The answer">
+                <textarea className="input" rows={6} value={answer} onChange={(e) => setAnswer(e.target.value)}
+                  placeholder="Write the answer as you'd want customers to read it…" required />
+              </Field>
+              <div className="flex justify-end gap-2">
+                <button type="button" className="btn btn-ghost btn-sm" onClick={() => setTeaching(null)}>Cancel</button>
+                <button className="btn btn-primary btn-sm" disabled={busy}>{busy ? 'Teaching…' : 'Save & learn'}</button>
+              </div>
+            </form>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
@@ -447,6 +620,7 @@ function SettingsTab({ kb, reload }) {
     name: kb.name, description: kb.description || '', chunk_size: kb.chunk_size,
     chunk_overlap: kb.chunk_overlap, top_k: kb.top_k,
     system_prompt: kb.system_prompt || '', welcome_message: kb.welcome_message || '',
+    web_fallback: !!kb.web_fallback,
   });
   const [busy, setBusy] = useState(false);
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
@@ -489,6 +663,14 @@ function SettingsTab({ kb, reload }) {
       <div className="card card-pad mb-4">
         <h3 className="font-bold mb-4">AI behavior</h3>
         <Field label="System prompt" hint="Leave blank for the default grounded-answering prompt."><textarea className="input" rows={4} value={form.system_prompt} onChange={set('system_prompt')} placeholder="You are a helpful support agent…" /></Field>
+        <div className="flex items-start gap-3 mt-2 p-4 rounded-xl" style={{ background: '#faf8ff', border: '1px solid #ede9fe' }}>
+          <input type="checkbox" id="webfb" className="mt-1 w-4 h-4 accent-violet-600"
+            checked={form.web_fallback} onChange={(e) => setForm({ ...form, web_fallback: e.target.checked })} />
+          <label htmlFor="webfb" className="text-sm">
+            <strong className="text-slate-800">🌐 Web fallback</strong>
+            <span className="text-slate-500 block mt-0.5">When your documents don't have the answer, search the internet and answer with clearly-labeled web citations. Requires <code>BRAVE_API_KEY</code> on the server.</span>
+          </label>
+        </div>
       </div>
       <div className="flex justify-between items-center">
         <button type="button" className="btn btn-danger btn-sm" onClick={destroy}>Delete knowledge base</button>
@@ -510,6 +692,7 @@ export default function KBDetail({ kbId, setView }) {
   const tabs = [
     { id: 'chat', label: '💬 Chat' },
     { id: 'docs', label: '📄 Documents' },
+    { id: 'insights', label: '🧠 Insights' },
     { id: 'analytics', label: '📊 Analytics' },
     { id: 'share', label: '🔗 Share' },
     { id: 'settings', label: '⚙️ Settings' },
@@ -526,6 +709,7 @@ export default function KBDetail({ kbId, setView }) {
       </div>
       {tab === 'chat' && <ChatTab kb={kb} />}
       {tab === 'docs' && <DocsTab kb={kb} />}
+      {tab === 'insights' && <InsightsTab kb={kb} />}
       {tab === 'analytics' && <AnalyticsTab kb={kb} />}
       {tab === 'share' && <ShareTab kb={kb} reload={reload} />}
       {tab === 'settings' && <SettingsTab kb={kb} reload={reload} />}

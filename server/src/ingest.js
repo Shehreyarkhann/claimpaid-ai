@@ -87,4 +87,4 @@ function chunkText(text, chunkSize = 1000, overlap = 200) {
   return chunks;
 }
 
-module.exports = { extractText, extractUrl, chunkText };
+module.exports = { extractText, extractUrl, chunkText, htmlToText };

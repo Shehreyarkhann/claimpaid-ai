@@ -16,6 +16,8 @@ app.use('/api/kb', require('./routes/kb'));
 app.use('/api/kb/:kbId/documents', require('./routes/documents'));
 app.use('/api/kb/:kbId/chat', require('./routes/chat'));
 app.use('/api/kb/:kbId/analytics', require('./routes/analytics'));
+app.use('/api/kb/:kbId/sources', require('./routes/sources'));
+app.use('/api/kb/:kbId/autopilot', require('./routes/autopilot'));
 app.use('/api/keys', require('./routes/apikeys'));
 app.use('/api/v1', require('./routes/apikeys').v1);
 app.use('/api/share', require('./routes/share'));
@@ -45,3 +47,23 @@ const PORT = process.env.PORT || 4001;
 app.listen(PORT, () => {
   console.log(`AskBase listening on :${PORT} (landing /, app /app)`);
 });
+
+// --- Autopilot: re-crawl all sources once a day, learn without human input ---
+const { db: cronDb } = require('./db');
+const { runSource } = require('./crawler');
+async function autopilotTick() {
+  try {
+    const sources = cronDb.prepare(`
+      SELECT s.* FROM sources s
+      WHERE s.last_run_at IS NULL OR s.last_run_at < datetime('now', '-1 day')
+      LIMIT 20
+    `).all();
+    for (const s of sources) {
+      console.log(`[autopilot] crawling ${s.url}`);
+      await runSource(s).catch((e) => console.log('[autopilot] failed:', e.message));
+    }
+    if (sources.length) console.log(`[autopilot] done: ${sources.length} source(s)`);
+  } catch (e) { console.log('[autopilot] tick failed:', e.message); }
+}
+setInterval(autopilotTick, 6 * 60 * 60 * 1000); // check every 6h
+setTimeout(autopilotTick, 60 * 1000); // first run 1 min after boot

@@ -15,9 +15,16 @@ Upload PDF/DOCX/TXT/URL → extract text → smart chunking → local embeddings
 
 - **Local embeddings** (all-MiniLM-L6-v2, 384-dim) — real semantic search, zero API keys
 - **Two answer modes:**
-  - **LLM mode** — set `LLM_API_KEY` (any OpenAI-compatible endpoint: OpenAI, Groq, Together, Ollama…) for full generative answers with `[n]` citations
-  - **Demo mode** (no key) — extractive answers assembled from the top retrieved chunks, always cited
+  - **LLM mode** — set `LLM_PROVIDER` (`ollama`, `lmstudio`, `openai`, `groq`, `together`) for full generative answers with `[n]` citations. `ollama`/`lmstudio` run **100% offline** — no cloud, no keys, your data never leaves the machine.
+  - **Demo mode** (no LLM) — extractive answers assembled from the top retrieved chunks, always cited
 - **Grounded by design** — answers come from retrieved passages or the assistant says it doesn't know; tunable relevance threshold per knowledge base
+
+## 🧠 Autopilot — it gets smarter on its own
+
+- **Auto-ingest sources** — point AskBase at your website's `sitemap.xml` (or a single page). It crawls new and changed pages by itself every day: new pages ingested, changed pages re-indexed, unchanged pages skipped via content hashing. Zero maintenance.
+- **Insights → Teach it** — every question the KB can't answer lands in a queue. Click **Teach it**, write the answer once, and it's embedded instantly — cited like any other document from then on. The system tells *you* what it needs to learn.
+- **Dead content detection** — documents never cited in 30 days get flagged for pruning, keeping retrieval sharp.
+- **Web fallback** (opt-in per KB) — when your docs don't have the answer, AskBase can search the internet (Brave Search API) and answer with clearly-labeled 🌐 web citations instead of saying "I don't know".
 
 ## Features
 
@@ -35,11 +42,22 @@ Upload PDF/DOCX/TXT/URL → extract text → smart chunking → local embeddings
 ## Quick start
 
 ```bash
-cd server && cp .env.example .env   # set JWT_SECRET; add LLM_API_KEY for generative mode
+cd server && cp .env.example .env   # set JWT_SECRET
 npm install && node src/index.js    # :4001 — landing at /, app at /app
 
 cd ../client && npm install && npm run build
 ```
+
+**100% offline generative answers** (no cloud APIs, no keys):
+```bash
+# 1. install Ollama → https://ollama.com, then:
+ollama pull llama3.1:8b && ollama serve
+# 2. in server/.env:
+LLM_PROVIDER=ollama
+# 3. restart — chat now streams generative answers from your local model,
+#    still grounded in your documents, still cited.
+```
+> Note: local LLMs need RAM — an 8B model wants ~8GB. The $4.50 Hetzner VPS can't run one; use a bigger VPS, a local machine, or a cloud LLM provider for hosted deployments.
 
 `SEED_DEMO=true` seeds a demo org + knowledge base on first boot.
 

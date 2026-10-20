@@ -106,7 +106,25 @@ function initSchema() {
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
     CREATE INDEX IF NOT EXISTS idx_apikey_org ON api_keys(org_id);
+
+    CREATE TABLE IF NOT EXISTS sources (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      kb_id INTEGER NOT NULL REFERENCES knowledge_bases(id) ON DELETE CASCADE,
+      org_id INTEGER NOT NULL REFERENCES orgs(id),
+      type TEXT NOT NULL DEFAULT 'sitemap',
+      url TEXT NOT NULL,
+      crawl_limit INTEGER NOT NULL DEFAULT 50,
+      last_run_at TEXT,
+      last_status TEXT,
+      last_found INTEGER DEFAULT 0,
+      last_new INTEGER DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_sources_kb ON sources(kb_id);
   `);
+  // lightweight migrations for existing DBs
+  try { db.exec(`ALTER TABLE knowledge_bases ADD COLUMN web_fallback INTEGER NOT NULL DEFAULT 0`); } catch {}
+  try { db.exec(`ALTER TABLE documents ADD COLUMN content_hash TEXT`); } catch {}
 }
 
 module.exports = { db, initSchema, columnExists };

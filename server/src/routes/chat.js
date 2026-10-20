@@ -1,7 +1,7 @@
 const express = require('express');
 const { db } = require('../db');
 const { authRequired, loadKb } = require('../auth');
-const { answerQuestion, llmEnabled, LLM_MODEL } = require('../rag');
+const { answerQuestion, llmEnabled, LLM_MODEL, providerLabel } = require('../rag');
 
 const router = express.Router({ mergeParams: true });
 router.use(authRequired, loadKb);
@@ -13,7 +13,7 @@ router.get('/conversations', (req, res) => {
     FROM conversations c WHERE c.kb_id = ? AND c.user_id = ?
     ORDER BY c.created_at DESC LIMIT 50
   `).all(req.kb.id, req.user.id);
-  res.json({ conversations: convos, llm: llmEnabled(), model: llmEnabled() ? LLM_MODEL : null });
+  res.json({ conversations: convos, llm: llmEnabled(), model: llmEnabled() ? LLM_MODEL : null, provider: providerLabel() });
 });
 
 // Get conversation with messages

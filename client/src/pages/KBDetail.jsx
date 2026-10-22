@@ -283,7 +283,7 @@ function SourcesManager({ kb }) {
         <h3 className="font-bold">🤖 Autopilot sources</h3>
         <span className="badge badge-violet">self-learning</span>
       </div>
-      <p className="text-sm text-slate-500 mb-4">Point ClaimPilot AI at your website's sitemap. It crawls new and changed pages on its own every day — no uploads, no maintenance.</p>
+      <p className="text-sm text-slate-500 mb-4">Point ClaimPaid AI at your website's sitemap. It crawls new and changed pages on its own every day — no uploads, no maintenance.</p>
       <form onSubmit={add} className="flex gap-2 mb-4 flex-wrap">
         <select className="input !w-auto" value={type} onChange={(e) => setType(e.target.value)}>
           <option value="sitemap">Sitemap</option>

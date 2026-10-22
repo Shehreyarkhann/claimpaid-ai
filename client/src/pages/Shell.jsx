@@ -21,7 +21,7 @@ export default function Shell({ user, view, setView, children }) {
             <span className="text-white text-lg font-black">A</span>
           </div>
           <div>
-            <div className="text-white font-bold text-[15px] leading-tight">ClaimPilot AI</div>
+            <div className="text-white font-bold text-[15px] leading-tight">ClaimPaid AI</div>
             <div className="text-slate-400 text-xs">{org?.name || '…'}</div>
           </div>
         </div>
@@ -38,8 +38,8 @@ export default function Shell({ user, view, setView, children }) {
           ))}
         </nav>
         <div className="mt-auto pt-6 border-t border-white/10">
-          <a href="https://claim-pilot.io" target="_blank" rel="noreferrer" className="block px-2 pb-3 text-xs text-slate-500 hover:text-white">
-            Part of <span className="font-semibold text-slate-300">ClaimPilot</span> · <span className="text-emerald-400 font-semibold">RCM Platform →</span>
+          <a href="https://claimpaid.io" target="_blank" rel="noreferrer" className="block px-2 pb-3 text-xs text-slate-500 hover:text-white">
+            Part of <span className="font-semibold text-slate-300">ClaimPaid</span> · <span className="text-emerald-400 font-semibold">RCM Platform →</span>
           </a>
           <div className="flex items-center gap-3 px-2">
             <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold" style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}>

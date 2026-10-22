@@ -116,7 +116,7 @@ export default function WidgetPage({ slug, embed }) {
         <input className="input !py-2.5" value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask a question…" disabled={streaming} />
         <button className="btn btn-primary btn-sm !px-4" disabled={streaming || !input.trim()}>➤</button>
       </form>
-      <div className="text-center pb-2"><span className="text-[10px] text-slate-300">Powered by ClaimPilot AI</span></div>
+      <div className="text-center pb-2"><span className="text-[10px] text-slate-300">Powered by ClaimPaid AI</span></div>
     </div>
   );
 }

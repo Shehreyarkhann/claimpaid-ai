@@ -33,7 +33,7 @@ export default function AuthPages({ onAuth }) {
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4" style={{ background: 'linear-gradient(135deg,#8b5cf6,#6d28d9)', boxShadow: '0 8px 30px rgba(139,92,246,.5)' }}>
             <span className="text-white text-2xl font-black">A</span>
           </div>
-          <h1 className="text-white text-3xl font-black tracking-tight">ClaimPilot AI</h1>
+          <h1 className="text-white text-3xl font-black tracking-tight">ClaimPaid AI</h1>
           <p className="text-violet-200/70 text-sm mt-2">AI answers from your documents</p>
         </div>
         <div className="card card-pad">

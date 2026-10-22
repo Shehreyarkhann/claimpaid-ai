@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { api } from '../auth.js';
 
 // Public chat page: full-page share view, or compact embed widget.
 export default function WidgetPage({ slug, embed }) {
@@ -11,7 +12,7 @@ export default function WidgetPage({ slug, embed }) {
   const bottomRef = useRef(null);
 
   useEffect(() => {
-    fetch(`/api/share/kb/${slug}`).then((r) => r.json()).then((d) => {
+    fetch(api(`/api/share/kb/${slug}`)).then((r) => r.json()).then((d) => {
       if (d.error) setErr(d.error);
       else setKb(d.kb);
     }).catch(() => setErr('Could not load'));
@@ -27,7 +28,7 @@ export default function WidgetPage({ slug, embed }) {
     setMessages((m) => [...m, { role: 'user', content: text }, { role: 'assistant', content: '', streaming: true, citations: [] }]);
     setStreaming(true);
     try {
-      const res = await fetch(`/api/share/kb/${slug}/chat`, {
+      const res = await fetch(api(`/api/share/kb/${slug}/chat`), {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: text, conversation_id: convoId }),
       });

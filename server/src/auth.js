@@ -34,6 +34,11 @@ function ensureRcmIdentity(rcmUser, rcmOrgId) {
     } catch { /* keep default name */ }
     const id = Number(db.prepare('INSERT INTO orgs (name, rcm_org_id) VALUES (?, ?)').run(name, rcmOrgId).lastInsertRowid);
     org = db.prepare('SELECT * FROM orgs WHERE id = ?').get(id);
+    // Seed the showcase handbook in the background (embeddings take ~a minute)
+    try {
+      const { ensureHandbookKb } = require('./seed-handbook');
+      setImmediate(() => ensureHandbookKb(org.id));
+    } catch { /* seeding is best-effort */ }
   }
   const email = (rcmUser.email || '').toLowerCase();
   let user = email ? db.prepare('SELECT * FROM users WHERE email = ?').get(email) : null;

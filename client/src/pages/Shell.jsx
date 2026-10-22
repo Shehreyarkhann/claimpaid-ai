@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useToast, PageHeader, Skeleton, EmptyState, Stat, Field } from '../components/ui';
-import { authFetch, setToken } from '../auth';
+import { authFetch, setToken, setRcmToken } from '../auth';
 
 const NAV = [
   { id: 'kbs', label: 'Knowledge Bases', icon: '📚' },
@@ -50,7 +50,7 @@ export default function Shell({ user, view, setView, children }) {
               <div className="text-slate-500 text-xs capitalize">{user?.role}</div>
             </div>
             <button className="text-slate-500 hover:text-white text-lg" title="Sign out"
-              onClick={() => { setToken(null); window.location.reload(); }}>↪</button>
+              onClick={() => { setToken(null); setRcmToken(null); window.location.href = '/ai/app/'; }}>↪</button>
           </div>
         </div>
       </aside>

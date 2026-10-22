@@ -43,34 +43,49 @@ async function retrieve(kb, query, topK) {
   return scored.slice(0, topK || kb.top_k || 5);
 }
 
-function buildPrompt(kb, query, chunks, history = [], webUsed = false) {
+function buildPrompt(kb, query, chunks, history = [], webUsed = false, generalKnowledge = false) {
   const context = chunks
     .map((c, i) => `[${i + 1}] (from "${c.filename}")\n${c.text}`)
     .join('\n\n');
-  const hist = history.slice(-6).map((m) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`).join('\n');
+  const hist = history.slice(-10).map((m) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`).join('\n');
+
+  const persona =
+    'You are ClaimPaid AI — a sharp, friendly, genuinely helpful assistant. You are conversational, not robotic: ' +
+    'warm greetings get warm replies, jokes get a light touch, and you never answer a simple "hi" with a lecture. ' +
+    'You have two sources of knowledge, and you are always clear about which you are using:\n' +
+    '1. THE USER\'S DOCUMENTS (reference excerpts below, when present) — this is your superpower. Ground factual claims in them and cite with [n] markers.\n' +
+    '2. YOUR OWN GENERAL KNOWLEDGE (your training) — use it freely for greetings, small talk, explanations, reasoning, math, writing help, and general questions. ' +
+    'When answering from general knowledge rather than their documents, you may say so naturally ("from what I know generally…", "this isn\'t in your documents, but…").\n' +
+    'CONVERSATION: you remember this conversation. "What about Cigna?" after discussing Aetna means Cigna\'s timely filing limit. ' +
+    '"Why?" refers to your last answer. Never ask the user to repeat themselves — use the history.\n' +
+    'STYLE: write like a smart colleague over chat. Short paragraphs, bullets and bold for structure when it helps, never walls of text. ' +
+    'Be thorough when the question deserves it; be brief when it doesn\'t. A greeting gets one or two sentences, not an essay.\n' +
+    'HONESTY: if you genuinely don\'t know something, say so and suggest how to find out. For high-stakes facts (medical, legal, financial specifics), ' +
+    'note that they should verify against an authoritative source. Never invent citations, document names, or statistics.\n' +
+    'You run entirely on the customer\'s own servers — their documents never leave their infrastructure.';
+
   const system = webUsed
-    ? 'You are ClaimPaid AI, a private assistant that runs entirely on the user\'s own servers — their documents never leave their infrastructure. ' +
-      'The excerpts below come from WEB SEARCH RESULTS, not the user\'s documents — say so when relevant. ' +
-      'Write a clear, natural answer in your own words. Use short paragraphs and bullet or numbered lists where they help. ' +
-      'Cite factual claims with [n] markers matching the excerpts. If the results do not contain the answer, say so honestly.'
-    : (kb.system_prompt?.trim() ||
-      'You are ClaimPaid AI, a private AI assistant for revenue-cycle and healthcare operations teams. ' +
-      'You run entirely on the customer\'s own servers — their documents never leave their infrastructure, which is why they trust you with sensitive material. ' +
-      'Answer the question in your own words: synthesize what the excerpts say into a clear, well-organized, genuinely helpful response. ' +
+    ? persona + '\nThe excerpts below come from WEB SEARCH RESULTS, not the user\'s documents — say so when relevant. ' +
+      'Write a clear, natural answer in your own words. Cite factual claims with [n] markers matching the excerpts.'
+    : generalKnowledge
+    ? persona + '\nNo reference excerpts this time — answer from your general knowledge, conversationally. ' +
+      'If the question touches the user\'s domain (their documents\' topic), you can note that their documents might have the authoritative answer and offer to check if they upload them.'
+    : (kb.system_prompt?.trim() || persona) +
+      '\n\nAnswer the question in your own words: synthesize what the excerpts say into a clear, well-organized, genuinely helpful response. ' +
       'Write like a knowledgeable colleague — short paragraphs, bullet or numbered lists for steps, comparisons and details, bold for key terms and figures. ' +
       'Be thorough: if the excerpts contain related details the user would care about (deadlines, exceptions, consequences, next steps), include them — don\'t give a one-sentence answer when a fuller explanation is warranted. ' +
       'Do NOT copy-paste passages from the excerpts; explain and summarize. ' +
-      'Ground every factual claim in the excerpts and cite it with [n] markers matching the excerpt numbers. ' +
-      'If the excerpts don\'t contain the answer, say so plainly and suggest what to ask or what document to add — never invent facts.');
-  return {
-    system,
-    user: `${hist ? `Conversation so far:\n${hist}\n\n` : ''}Reference excerpts:\n${context}\n\nQuestion: ${query}\n\nWrite a clear, complete answer in your own words with [n] citations.`,
-  };
+      'Ground every factual claim in the excerpts and cite it with [n] markers matching the excerpt numbers.';
+
+  const user = generalKnowledge
+    ? `${hist ? `Conversation so far:\n${hist}\n\n` : ''}User: ${query}\n\n(Answer from your general knowledge — no document excerpts available.)`
+    : `${hist ? `Conversation so far:\n${hist}\n\n` : ''}Reference excerpts:\n${context}\n\nQuestion: ${query}\n\nWrite a clear, complete answer in your own words with [n] citations.`;
+  return { system, user };
 }
 
 // Stream tokens from an OpenAI-compatible SSE endpoint into our res
-async function streamLlm(res, kb, query, chunks, history, citations, webUsed = false) {
-  const { system, user } = buildPrompt(kb, query, chunks, history, webUsed);
+async function streamLlm(res, kb, query, chunks, history, citations, webUsed = false, generalKnowledge = false) {
+  const { system, user } = buildPrompt(kb, query, chunks, history, webUsed, generalKnowledge);
   const upstream = await fetch(`${LLM_BASE}/chat/completions`, {
     method: 'POST',
     headers: {
@@ -170,7 +185,13 @@ async function answerQuestion({ kb, query, history = [], res }) {
 
   let full = '';
   let mode = 'demo';
-  if (chunks.length === 0) {
+  if (chunks.length === 0 && llmEnabled()) {
+    // No document hits — answer from the model's own general knowledge instead of playing dumb.
+    // The prompt makes clear which knowledge source is being used.
+    mode = 'llm-general';
+    res.write(`event: meta\ndata: ${JSON.stringify({ citations: [], mode, model: LLM_MODEL })}\n\n`);
+    full = await streamLlm(res, kb, query, [], history, [], webUsed, true);
+  } else if (chunks.length === 0) {
     mode = 'none';
     res.write(`event: meta\ndata: ${JSON.stringify({ citations: [], mode })}\n\n`);
     full = `I couldn't find anything in your documents about that. Try rephrasing the question, or add documents that cover this topic to the knowledge base.`;

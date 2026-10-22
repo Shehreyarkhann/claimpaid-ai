@@ -389,7 +389,7 @@ function DocsTab({ kb }) {
         </form>
       </div>
 
-      <div className="card overflow-hidden">
+      <div className="card overflow-x-auto">
         <table className="tbl">
           <thead><tr><th>Document</th><th>Source</th><th>Chunks</th><th>Status</th><th>Added</th><th></th></tr></thead>
           <tbody>

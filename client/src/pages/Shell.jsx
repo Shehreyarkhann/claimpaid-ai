@@ -2,59 +2,147 @@ import { useEffect, useState } from 'react';
 import { useToast, PageHeader, Skeleton, EmptyState, Stat, Field } from '../components/ui';
 import { authFetch, setToken, setRcmToken } from '../auth';
 
+// Stroke icons matching the RCM app's nav style
+const ICONS = {
+  kbs: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+    </svg>
+  ),
+  keys: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="7.5" cy="15.5" r="4.5"/><path d="m11 12 10-10"/><path d="m15 8 3 3"/>
+    </svg>
+  ),
+  team: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+    </svg>
+  ),
+};
+
 const NAV = [
-  { id: 'kbs', label: 'Knowledge Bases', icon: '📚' },
-  { id: 'keys', label: 'API Keys', icon: '🔑' },
-  { id: 'team', label: 'Team', icon: '👥' },
+  { id: 'kbs', label: 'Knowledge Bases', icon: ICONS.kbs },
+  { id: 'keys', label: 'API Keys', icon: ICONS.keys },
+  { id: 'team', label: 'Team', icon: ICONS.team },
 ];
 
 export default function Shell({ user, view, setView, children }) {
   const [org, setOrg] = useState(null);
+  const [collapsed, setCollapsed] = useState(() => {
+    try { return localStorage.getItem('cp_ai_sidebar') === 'collapsed'; } catch { return false; }
+  });
+  const [mobileOpen, setMobileOpen] = useState(false);
   useEffect(() => {
     authFetch('/api/auth/me').then((r) => r.json()).then((d) => setOrg(d.org)).catch(() => {});
   }, []);
-  return (
-    <div className="min-h-screen flex">
-      <aside className="w-64 shrink-0 min-h-screen p-5 flex flex-col" style={{ background: '#0b1120' }}>
-        <div className="flex items-center gap-3 mb-8 px-1">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#8b5cf6,#6d28d9)' }}>
-            <span className="text-white text-lg font-black">A</span>
-          </div>
-          <div>
-            <div className="text-white font-bold text-[15px] leading-tight">ClaimPaid AI</div>
-            <div className="text-slate-400 text-xs">{org?.name || '…'}</div>
-          </div>
+  const toggle = () => {
+    setCollapsed((c) => {
+      const n = !c;
+      try { localStorage.setItem('cp_ai_sidebar', n ? 'collapsed' : 'open'); } catch {}
+      return n;
+    });
+  };
+  const signOut = () => { setToken(null); setRcmToken(null); window.location.href = '/ai/app/'; };
+  const go = (page) => { setView({ page }); setMobileOpen(false); };
+
+  const brand = (iconOnly) => (
+    <div className={`flex items-center ${iconOnly ? 'justify-center' : 'gap-3'} px-1`}>
+      <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'linear-gradient(135deg,#8b5cf6,#6d28d9)' }}>
+        <span className="text-white text-lg font-black">A</span>
+      </div>
+      {!iconOnly && (
+        <div className="min-w-0">
+          <div className="text-white font-bold text-[15px] leading-tight">ClaimPaid AI</div>
+          <div className="text-slate-400 text-xs truncate">{org?.name || '…'}</div>
         </div>
-        <nav className="flex flex-col gap-1">
-          {NAV.map((n) => (
-            <button
-              key={n.id}
-              onClick={() => setView({ page: n.id })}
-              className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-left transition-all ${view.page === n.id ? 'text-white' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
-              style={view.page === n.id ? { background: 'rgba(139,92,246,.18)', boxShadow: 'inset 0 0 0 1px rgba(139,92,246,.35)' } : {}}
-            >
-              <span className="text-base">{n.icon}</span> {n.label}
-            </button>
-          ))}
-        </nav>
-        <div className="mt-auto pt-6 border-t border-white/10">
-          <a href="https://claimpaid.io" target="_blank" rel="noreferrer" className="block px-2 pb-3 text-xs text-slate-500 hover:text-white">
-            Part of <span className="font-semibold text-slate-300">ClaimPaid</span> · <span className="text-emerald-400 font-semibold">RCM Platform →</span>
-          </a>
-          <div className="flex items-center gap-3 px-2">
-            <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold" style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}>
-              {(user?.name || 'U')[0].toUpperCase()}
-            </div>
+      )}
+    </div>
+  );
+
+  const navButtons = (iconOnly) => (
+    <nav className="flex flex-col gap-1">
+      {NAV.map((n) => (
+        <button
+          key={n.id}
+          onClick={() => go(n.id)}
+          title={iconOnly ? n.label : undefined}
+          className={`flex items-center ${iconOnly ? 'justify-center' : 'gap-3'} px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${view.page === n.id ? 'text-white' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+          style={view.page === n.id ? { background: 'rgba(139,92,246,.18)', boxShadow: 'inset 0 0 0 1px rgba(139,92,246,.35)' } : {}}
+        >
+          <span className="shrink-0">{n.icon}</span>
+          {!iconOnly && <span className="truncate">{n.label}</span>}
+        </button>
+      ))}
+    </nav>
+  );
+
+  const userCard = (iconOnly) => (
+    <div className="pt-4 border-t border-white/10">
+      {!iconOnly && (
+        <a href="https://claimpaid.io" target="_blank" rel="noreferrer" className="block px-2 pb-3 text-xs text-slate-500 hover:text-white">
+          Part of <span className="font-semibold text-slate-300">ClaimPaid</span> · <span className="text-emerald-400 font-semibold">RCM Platform →</span>
+        </a>
+      )}
+      <div className={`flex items-center ${iconOnly ? 'justify-center' : 'gap-3'} px-2`}>
+        <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0" style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}>
+          {(user?.name || 'U')[0].toUpperCase()}
+        </div>
+        {!iconOnly && (
+          <>
             <div className="flex-1 min-w-0">
               <div className="text-white text-sm font-semibold truncate">{user?.name}</div>
               <div className="text-slate-500 text-xs capitalize">{user?.role}</div>
             </div>
-            <button className="text-slate-500 hover:text-white text-lg" title="Sign out"
-              onClick={() => { setToken(null); setRcmToken(null); window.location.href = '/ai/app/'; }}>↪</button>
-          </div>
+            <button className="text-slate-500 hover:text-white text-lg" title="Sign out" onClick={signOut}>↪</button>
+          </>
+        )}
+      </div>
+      {iconOnly && (
+        <button className="w-full mt-3 text-slate-500 hover:text-white text-lg" title="Sign out" onClick={signOut}>↪</button>
+      )}
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen flex">
+      {/* Mobile top bar */}
+      <div className="md:hidden fixed top-0 inset-x-0 z-30 flex items-center gap-3 px-4 py-3" style={{ background: '#0b1120' }}>
+        <button onClick={() => setMobileOpen(true)} className="text-white text-xl p-1" aria-label="Open menu">☰</button>
+        {brand(false)}
+      </div>
+
+      {/* Desktop sidebar (collapsible) */}
+      <aside className={`hidden md:flex ${collapsed ? 'w-[76px]' : 'w-64'} shrink-0 min-h-screen py-5 flex-col transition-all duration-200 ${collapsed ? 'px-3' : 'px-5'}`} style={{ background: '#0b1120' }}>
+        <div className="mb-8">
+          {brand(collapsed)}
         </div>
+        <div className="flex-1">{navButtons(collapsed)}</div>
+        <button onClick={toggle} title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          className="mx-auto my-4 w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-white hover:bg-white/10 transition-colors">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: collapsed ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>
+            <path d="m15 18-6-6 6-6"/>
+          </svg>
+        </button>
+        {userCard(collapsed)}
       </aside>
-      <main className="flex-1 min-w-0 p-8 max-w-6xl">{children}</main>
+
+      {/* Mobile drawer */}
+      {mobileOpen && (
+        <div className="md:hidden fixed inset-0 z-40">
+          <div className="absolute inset-0 bg-black/60" onClick={() => setMobileOpen(false)} />
+          <aside className="absolute left-0 top-0 bottom-0 w-72 p-5 flex flex-col overflow-y-auto" style={{ background: '#0b1120' }}>
+            <div className="flex items-center justify-between mb-8">
+              {brand(false)}
+              <button onClick={() => setMobileOpen(false)} className="text-slate-400 hover:text-white text-xl p-1" aria-label="Close menu">✕</button>
+            </div>
+            <div className="flex-1">{navButtons(false)}</div>
+            {userCard(false)}
+          </aside>
+        </div>
+      )}
+
+      <main className="flex-1 min-w-0 p-4 md:p-8 pt-20 md:pt-8 max-w-6xl w-full">{children}</main>
     </div>
   );
 }
@@ -166,7 +254,7 @@ export function ApiKeys() {
         </div>
         <p className="hint">Example: <code>curl -X POST /api/v1/query -H "Authorization: Bearer KEY" -d '{"{"}kb_id": 1, "question": "..."{'}}'}</code></p>
       </div>
-      <div className="card overflow-hidden">
+      <div className="card overflow-x-auto">
         <table className="tbl">
           <thead><tr><th>Name</th><th>Prefix</th><th>Last used</th><th>Created</th><th></th></tr></thead>
           <tbody>
@@ -224,7 +312,7 @@ export function Team({ user }) {
           <button className="btn btn-primary btn-sm mt-3">Add teammate</button>
         </form>
       )}
-      <div className="card overflow-hidden">
+      <div className="card overflow-x-auto">
         <table className="tbl">
           <thead><tr><th>Name</th><th>Email</th><th>Role</th><th></th></tr></thead>
           <tbody>{(members || []).map((m) => (

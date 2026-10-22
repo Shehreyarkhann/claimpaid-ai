@@ -75,6 +75,9 @@ function buildPrompt(kb, query, chunks, history = [], webUsed = false, generalKn
       'Write like a knowledgeable colleague — short paragraphs, bullet or numbered lists for steps, comparisons and details, bold for key terms and figures. ' +
       'Be thorough: if the excerpts contain related details the user would care about (deadlines, exceptions, consequences, next steps), include them — don\'t give a one-sentence answer when a fuller explanation is warranted. ' +
       'Do NOT copy-paste passages from the excerpts; explain and summarize. ' +
+      'CRITICAL — NEVER CONFLATE: each excerpt is labeled with its source (payer, document, section). Different payers have DIFFERENT limits and rules. ' +
+      'When asked about a specific payer, find THAT payer\'s excerpt and report ONLY its figure — never apply one payer\'s number to another, ' +
+      'even if they were discussed together. If the excerpts don\'t name the requested payer, say so instead of guessing. ' +
       'Ground every factual claim in the excerpts and cite it with [n] markers matching the excerpt numbers.';
 
   const user = generalKnowledge
@@ -161,7 +164,14 @@ async function streamExtractive(res, kb, query, chunks, citations, webUsed = fal
 
 async function answerQuestion({ kb, query, history = [], res }) {
   const t0 = Date.now();
-  let chunks = await retrieve(kb, query, kb.top_k);
+  // Follow-up queries ("what about Cigna?") are useless for retrieval on their own —
+  // expand with recent user messages so the embedding carries the actual topic.
+  let retrievalQuery = query;
+  const prevUserMsgs = history.filter((m) => m.role === 'user').slice(-2).map((m) => m.content);
+  if (prevUserMsgs.length && query.trim().split(/\s+/).length < 10) {
+    retrievalQuery = prevUserMsgs.join(' ') + ' ' + query;
+  }
+  let chunks = await retrieve(kb, retrievalQuery, kb.top_k);
   let webUsed = false;
 
   // Autopilot web fallback: docs don't have it → ask the internet (opt-in per KB)

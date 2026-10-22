@@ -38,7 +38,7 @@ export default function Shell({ user, view, setView, children }) {
           ))}
         </nav>
         <div className="mt-auto pt-6 border-t border-white/10">
-          <a href="https://claimpilot.io" target="_blank" rel="noreferrer" className="block px-2 pb-3 text-xs text-slate-500 hover:text-white">
+          <a href="https://claim-pilot.io" target="_blank" rel="noreferrer" className="block px-2 pb-3 text-xs text-slate-500 hover:text-white">
             Part of <span className="font-semibold text-slate-300">ClaimPilot</span> · <span className="text-emerald-400 font-semibold">RCM Platform →</span>
           </a>
           <div className="flex items-center gap-3 px-2">

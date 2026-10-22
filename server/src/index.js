@@ -48,6 +48,20 @@ app.listen(PORT, () => {
   console.log(`AskBase listening on :${PORT} (landing /, app /app)`);
 });
 
+// --- LLM warmup: preload the model into memory so the first user query isn't a cold start ---
+setTimeout(() => {
+  try {
+    const { llmEnabled, LLM_BASE, LLM_MODEL } = require('./rag');
+    if (!llmEnabled() || !LLM_BASE.includes('11434')) return;
+    fetch(`${LLM_BASE}/api/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: LLM_MODEL, prompt: 'hi', stream: false, options: { num_predict: 1 } }),
+      signal: AbortSignal.timeout(120000),
+    }).then(() => console.log('[warmup] LLM model preloaded')).catch((e) => console.log('[warmup] skipped:', e.message));
+  } catch (e) { console.log('[warmup] skipped:', e.message); }
+}, 15000);
+
 // --- Autopilot: re-crawl all sources once a day, learn without human input ---
 const { db: cronDb } = require('./db');
 const { runSource } = require('./crawler');

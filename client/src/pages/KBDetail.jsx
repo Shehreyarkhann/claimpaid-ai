@@ -57,14 +57,34 @@ function ChatTab({ kb }) {
   const [streaming, setStreaming] = useState(false);
   const [citeOpen, setCiteOpen] = useState(null);
   const [llmInfo, setLlmInfo] = useState({ llm: false });
+  const [thinkSecs, setThinkSecs] = useState(0);
+  const [docState, setDocState] = useState(null);
   const bottomRef = useRef(null);
 
   const loadConvos = () => authFetch(`/api/kb/${kb.id}/chat/conversations`).then((r) => r.json())
     .then((d) => { setConvos(d.conversations); setLlmInfo({ llm: d.llm, model: d.model, provider: d.provider }); })
     .catch((e) => toast.error(e.message));
-  useEffect(() => { loadConvos(); }, [kb.id]);
+  const loadDocState = () => authFetch(`/api/kb/${kb.id}/documents`).then((r) => r.json())
+    .then((d) => {
+      const docs = d.documents || [];
+      setDocState({
+        total: docs.length,
+        ready: docs.filter((x) => x.status === 'ready').length,
+        processing: docs.filter((x) => x.status === 'processing').length,
+        failed: docs.filter((x) => x.status === 'failed').length,
+      });
+    }).catch(() => {});
+  useEffect(() => { loadConvos(); loadDocState(); const t = setInterval(loadDocState, 5000); return () => clearInterval(t); }, [kb.id]);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+
+  // "Thinking…" elapsed timer while the AI streams
+  useEffect(() => {
+    if (!streaming) { setThinkSecs(0); return; }
+    setThinkSecs(0);
+    const t = setInterval(() => setThinkSecs((s) => s + 1), 1000);
+    return () => clearInterval(t);
+  }, [streaming]);
 
   async function openConvo(id) {
     const res = await authFetch(`/api/kb/${kb.id}/chat/conversations/${id}`);
@@ -158,6 +178,26 @@ function ChatTab({ kb }) {
       </div>
 
       <div className="flex-1 card flex flex-col overflow-hidden">
+        {/* Mobile conversation switcher */}
+        <div className="md:hidden px-4 py-2.5 border-b border-slate-100 flex gap-2 items-center bg-slate-50/60">
+          <button className="btn btn-outline btn-sm shrink-0" onClick={newChat}>+ New</button>
+          <select className="input !py-1.5 text-sm flex-1 min-w-0" value={convoId || ''}
+            onChange={(e) => (e.target.value ? openConvo(Number(e.target.value)) : newChat())}>
+            <option value="">Chat history…</option>
+            {convos.map((c) => <option key={c.id} value={c.id}>{c.title} ({c.msg_count})</option>)}
+          </select>
+        </div>
+        {/* Document readiness notice */}
+        {docState && docState.total > 0 && docState.ready === 0 && (
+          <div className="px-5 py-2.5 bg-amber-50 border-b border-amber-100 text-xs text-amber-800">
+            ⏳ <strong>Still learning your documents…</strong> {docState.processing > 0 ? `${docState.processing} processing` : ''}{docState.failed > 0 ? ` · ${docState.failed} failed to import (see Documents tab)` : ''} — answers unlock as soon as the first one is ready.
+          </div>
+        )}
+        {docState && docState.total === 0 && (
+          <div className="px-5 py-2.5 bg-sky-50 border-b border-sky-100 text-xs text-sky-800">
+            📄 <strong>No documents yet.</strong> Add files, paste a URL, or connect a sitemap in the <strong>Documents</strong> tab — then ask away.
+          </div>
+        )}
         {!llmInfo.llm ? (
           <div className="px-5 py-2.5 bg-amber-50 border-b border-amber-100 text-xs text-amber-800">
             ⚡ <strong>Demo mode:</strong> answers are extracted from your documents. Set <code>LLM_PROVIDER</code> (ollama, openai, groq…) for generative answers.
@@ -183,7 +223,10 @@ function ChatTab({ kb }) {
                 <div>
                   <div className="chat-bubble-ai prose-chat">
                     {m.content ? renderMd(m.content, openCite) : (
-                      <span><span className="typing-dot" /><span className="typing-dot" /><span className="typing-dot" /></span>
+                      <span className="inline-flex items-center gap-2 text-slate-500 text-sm">
+                        <span><span className="typing-dot" /><span className="typing-dot" /><span className="typing-dot" /></span>
+                        Thinking{thinkSecs > 3 ? `… ${thinkSecs}s` : '…'}
+                      </span>
                     )}
                   </div>
                   {m.citations?.length > 0 && !m.streaming && (

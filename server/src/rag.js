@@ -77,6 +77,8 @@ async function streamLlm(res, kb, query, chunks, history, citations, webUsed = f
       'Content-Type': 'application/json',
       ...(LLM_KEY ? { Authorization: `Bearer ${LLM_KEY}` } : {}),
     },
+    // 3 min cap: qwen2.5:3b on 2 vCPU can take 60-90s; never hang forever
+    signal: AbortSignal.timeout(180000),
     body: JSON.stringify({
       model: LLM_MODEL,
       stream: true,
@@ -209,4 +211,4 @@ async function webSearch(query, topK = 5) {
   });
 }
 
-module.exports = { retrieve, answerQuestion, llmEnabled, LLM_MODEL, providerLabel, PROVIDER };
+module.exports = { retrieve, answerQuestion, llmEnabled, LLM_MODEL, LLM_BASE, providerLabel, PROVIDER };

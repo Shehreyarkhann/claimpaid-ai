@@ -2,11 +2,12 @@ const express = require('express');
 const multer = require('multer');
 const { db } = require('../db');
 const { authRequired, loadKb } = require('../auth');
+const { requireAiAccess } = require('../plans');
 const { extractText, extractUrl, chunkText } = require('../ingest');
 const { embed } = require('../embeddings');
 
 const router = express.Router({ mergeParams: true });
-router.use(authRequired, loadKb);
+router.use(authRequired, requireAiAccess, loadKb);
 
 const upload = multer({
   storage: multer.memoryStorage(),

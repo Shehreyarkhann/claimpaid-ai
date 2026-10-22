@@ -1,11 +1,12 @@
 const express = require('express');
 const { db } = require('../db');
 const { authRequired, loadKb } = require('../auth');
+const { requireAiAccess } = require('../plans');
 const { chunkText } = require('../ingest');
 const { embed } = require('../embeddings');
 
 const router = express.Router({ mergeParams: true });
-router.use(authRequired, loadKb);
+router.use(authRequired, requireAiAccess, loadKb);
 
 // --- "Teach it": one click turns an unanswered question into permanent knowledge ---
 router.post('/teach', async (req, res) => {

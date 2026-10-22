@@ -2,19 +2,20 @@ const express = require('express');
 const crypto = require('crypto');
 const { db } = require('../db');
 const { authRequired } = require('../auth');
+const { requireAiAccess, getRcmPlan } = require('../plans');
 const { retrieve } = require('../rag');
 
 const router = express.Router();
 
 // ---- management (org auth) ----
-router.get('/', authRequired, (req, res) => {
+router.get('/', authRequired, requireAiAccess, (req, res) => {
   const keys = db.prepare(`
     SELECT id, name, prefix, last_used_at, created_at FROM api_keys WHERE org_id = ? ORDER BY created_at DESC
   `).all(req.orgId);
   res.json({ keys });
 });
 
-router.post('/', authRequired, (req, res) => {
+router.post('/', authRequired, requireAiAccess, (req, res) => {
   const { name } = req.body || {};
   if (!name?.trim()) return res.status(400).json({ error: 'Name is required' });
   const raw = 'ask_' + crypto.randomBytes(24).toString('hex');
@@ -25,7 +26,7 @@ router.post('/', authRequired, (req, res) => {
   res.json({ id, key: raw, prefix: raw.slice(0, 8) });
 });
 
-router.delete('/:id', authRequired, (req, res) => {
+router.delete('/:id', authRequired, requireAiAccess, (req, res) => {
   db.prepare('DELETE FROM api_keys WHERE id = ? AND org_id = ?').run(req.params.id, req.orgId);
   res.json({ ok: true });
 });
@@ -40,6 +41,16 @@ function keyAuth(req, res, next) {
   if (!key) return res.status(401).json({ error: 'Invalid API key' });
   db.prepare('UPDATE api_keys SET last_used_at = datetime(\'now\') WHERE id = ?').run(key.id);
   req.orgId = key.org_id;
+  // Plan gate for key-authenticated API usage
+  try {
+    const org = db.prepare('SELECT rcm_org_id FROM orgs WHERE id = ?').get(key.org_id);
+    if (org?.rcm_org_id) {
+      const { products } = getRcmPlan(org.rcm_org_id);
+      if (products.ai === false) {
+        return res.status(403).json({ error: "This organization's plan doesn't include ClaimPaid AI.", upgrade: true });
+      }
+    }
+  } catch { /* grandfather on lookup failure */ }
   next();
 }
 

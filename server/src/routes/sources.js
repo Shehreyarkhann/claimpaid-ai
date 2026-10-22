@@ -1,10 +1,11 @@
 const express = require('express');
 const { db } = require('../db');
 const { authRequired, loadKb } = require('../auth');
+const { requireAiAccess } = require('../plans');
 const { runSource } = require('../crawler');
 
 const router = express.Router({ mergeParams: true });
-router.use(authRequired, loadKb);
+router.use(authRequired, requireAiAccess, loadKb);
 
 // List auto-ingest sources
 router.get('/', (req, res) => {

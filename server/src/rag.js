@@ -10,7 +10,7 @@ const PRESETS = {
   openai:   { base: 'https://api.openai.com/v1', model: 'gpt-4o-mini' },
   groq:     { base: 'https://api.groq.com/openai/v1', model: 'llama-3.1-8b-instant' },
   together: { base: 'https://api.together.xyz/v1', model: 'meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo' },
-  ollama:   { base: 'http://localhost:11434/v1', model: 'llama3.1:8b' },   // fully offline
+  ollama:   { base: 'http://localhost:11434/v1', model: 'qwen2.5:3b-instruct' }, // fully offline
   lmstudio: { base: 'http://localhost:1234/v1', model: 'local-model' },    // fully offline
 };
 const PROVIDER = (process.env.LLM_PROVIDER || '').toLowerCase();
@@ -49,14 +49,21 @@ function buildPrompt(kb, query, chunks, history = [], webUsed = false) {
     .join('\n\n');
   const hist = history.slice(-6).map((m) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`).join('\n');
   const system = webUsed
-    ? 'You are a helpful assistant. The provided excerpts come from WEB SEARCH RESULTS, not the user\'s documents — say so when relevant. Cite every factual claim with [n] markers. If the results do not contain the answer, say so.'
-    : kb.system_prompt?.trim() ||
-      'You are a helpful assistant that answers questions using ONLY the provided document excerpts. ' +
-      'Cite every factual claim with [n] markers matching the excerpts. ' +
-      'If the excerpts do not contain the answer, say you do not have enough information — never invent facts.';
+    ? 'You are ClaimPaid AI, a private assistant that runs entirely on the user\'s own servers — their documents never leave their infrastructure. ' +
+      'The excerpts below come from WEB SEARCH RESULTS, not the user\'s documents — say so when relevant. ' +
+      'Write a clear, natural answer in your own words. Use short paragraphs and bullet or numbered lists where they help. ' +
+      'Cite factual claims with [n] markers matching the excerpts. If the results do not contain the answer, say so honestly.'
+    : (kb.system_prompt?.trim() ||
+      'You are ClaimPaid AI, a private AI assistant for revenue-cycle and healthcare operations teams. ' +
+      'You run entirely on the customer\'s own servers — their documents never leave their infrastructure, which is why they trust you with sensitive material. ' +
+      'Answer the question in your own words: synthesize what the excerpts say into a clear, well-organized response. ' +
+      'Write like a knowledgeable colleague — short paragraphs, bullet or numbered lists for steps and comparisons, bold for key terms. ' +
+      'Do NOT copy-paste passages from the excerpts; explain and summarize. ' +
+      'Ground every factual claim in the excerpts and cite it with [n] markers matching the excerpt numbers. ' +
+      'If the excerpts don\'t contain the answer, say so plainly and suggest what to ask or what document to add — never invent facts.');
   return {
     system,
-    user: `${hist ? `Conversation so far:\n${hist}\n\n` : ''}Document excerpts:\n${context}\n\nQuestion: ${query}\n\nAnswer concisely with [n] citations.`,
+    user: `${hist ? `Conversation so far:\n${hist}\n\n` : ''}Reference excerpts:\n${context}\n\nQuestion: ${query}\n\nWrite a clear, complete answer in your own words with [n] citations.`,
   };
 }
 
@@ -72,7 +79,7 @@ async function streamLlm(res, kb, query, chunks, history, citations, webUsed = f
     body: JSON.stringify({
       model: LLM_MODEL,
       stream: true,
-      temperature: 0.2,
+      temperature: 0.4,
       messages: [
         { role: 'system', content: system },
         { role: 'user', content: user },

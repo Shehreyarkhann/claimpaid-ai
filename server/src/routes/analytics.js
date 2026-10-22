@@ -1,9 +1,10 @@
 const express = require('express');
 const { db } = require('../db');
 const { authRequired, loadKb } = require('../auth');
+const { requireAiAccess } = require('../plans');
 
 const router = express.Router({ mergeParams: true });
-router.use(authRequired, loadKb);
+router.use(authRequired, requireAiAccess, loadKb);
 
 router.get('/', (req, res) => {
   const kb = req.kb;

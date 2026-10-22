@@ -2,9 +2,10 @@ const express = require('express');
 const crypto = require('crypto');
 const { db } = require('../db');
 const { authRequired, loadKb } = require('../auth');
+const { requireAiAccess } = require('../plans');
 
 const router = express.Router();
-router.use(authRequired);
+router.use(authRequired, requireAiAccess);
 
 // List KBs with doc/chunk counts
 router.get('/', (req, res) => {

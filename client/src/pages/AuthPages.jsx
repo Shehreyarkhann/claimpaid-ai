@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import { getToken, setToken } from '../auth';
+import { api, setToken, setRcmToken, getToken } from '../auth';
 
 export default function AuthPages({ onAuth }) {
-  const [mode, setMode] = useState('login'); // login | signup
-  const [form, setForm] = useState({ name: '', email: 'demo@askbase.com', orgName: '', password: 'demo1234' });
+  const [form, setForm] = useState({ email: 'demo@askbase.com', password: 'demo1234' });
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
 
@@ -13,14 +12,20 @@ export default function AuthPages({ onAuth }) {
     e.preventDefault();
     setBusy(true); setErr('');
     try {
-      const url = mode === 'login' ? '/api/auth/login' : '/api/auth/signup';
-      const body = mode === 'login'
-        ? { email: form.email, password: form.password }
-        : { name: form.name, email: form.email, orgName: form.orgName, password: form.password };
-      const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed');
-      setToken(data.token);
+      const body = { email: form.email, password: form.password };
+      // 1) Try the AI account first (legacy AI users + demo)
+      let res = await fetch(api('/api/auth/login'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      let data = await res.json().catch(() => ({}));
+      if (res.ok && data.token) {
+        setToken(data.token);
+        onAuth(data.user);
+        return;
+      }
+      // 2) Fall back to the ClaimPaid (RCM) account — one login for both apps
+      res = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.token) throw new Error(data.error || 'Invalid email or password');
+      setRcmToken(data.token);
       onAuth(data.user);
     } catch (e2) { setErr(e2.message); }
     setBusy(false);
@@ -37,31 +42,22 @@ export default function AuthPages({ onAuth }) {
           <p className="text-violet-200/70 text-sm mt-2">AI answers from your documents</p>
         </div>
         <div className="card card-pad">
-          <div className="tabs mb-6">
-            <button className={`tab ${mode === 'login' ? 'active' : ''}`} onClick={() => setMode('login')}>Sign in</button>
-            <button className={`tab ${mode === 'signup' ? 'active' : ''}`} onClick={() => setMode('signup')}>Create account</button>
-          </div>
           {err && <div className="mb-4 text-sm bg-red-50 text-red-700 border border-red-200 rounded-xl px-4 py-3">{err}</div>}
           <form onSubmit={submit}>
-            {mode === 'signup' && (
-              <>
-                <div className="mb-4"><label className="label">Your name</label>
-                  <input className="input" value={form.name} onChange={set('name')} placeholder="Jane Smith" required /></div>
-                <div className="mb-4"><label className="label">Organization</label>
-                  <input className="input" value={form.orgName} onChange={set('orgName')} placeholder="Acme Inc." required /></div>
-              </>
-            )}
             <div className="mb-4"><label className="label">Email</label>
               <input className="input" type="email" value={form.email} onChange={set('email')} placeholder="you@company.com" required /></div>
             <div className="mb-6"><label className="label">Password</label>
               <input className="input" type="password" value={form.password} onChange={set('password')} placeholder="••••••••" required /></div>
             <button className="btn btn-primary w-full !py-3" disabled={busy}>
-              {busy ? 'Please wait…' : mode === 'login' ? 'Sign in' : 'Create account'}
+              {busy ? 'Please wait…' : 'Sign in'}
             </button>
           </form>
-          {mode === 'login' && (
-            <p className="hint text-center mt-4">Demo login is pre-filled — just hit <strong>Sign in</strong> to explore.</p>
-          )}
+          <p className="hint text-center mt-4">Demo login is pre-filled — just hit <strong>Sign in</strong> to explore.</p>
+          <div className="text-center mt-4 pt-4 border-t border-slate-200">
+            <p className="text-sm text-slate-500 mb-2">New to ClaimPaid AI?</p>
+            <a href="/app/?plan=ai&trial=1" className="btn btn-outline w-full !py-2.5">Create account — start 1 month free</a>
+            <p className="hint mt-2">One account for ClaimPaid RCM + AI · $99/mo after trial</p>
+          </div>
         </div>
       </div>
     </div>

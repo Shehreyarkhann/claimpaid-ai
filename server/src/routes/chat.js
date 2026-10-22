@@ -1,10 +1,11 @@
 const express = require('express');
 const { db } = require('../db');
 const { authRequired, loadKb } = require('../auth');
+const { requireAiAccess } = require('../plans');
 const { answerQuestion, llmEnabled, LLM_MODEL, providerLabel } = require('../rag');
 
 const router = express.Router({ mergeParams: true });
-router.use(authRequired, loadKb);
+router.use(authRequired, requireAiAccess, loadKb);
 
 // List conversations
 router.get('/conversations', (req, res) => {

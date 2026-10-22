@@ -164,7 +164,7 @@ function ChatTab({ kb }) {
           </div>
         ) : (
           <div className="px-5 py-2.5 bg-violet-50 border-b border-violet-100 text-xs text-violet-800">
-            🧠 Generative answers via <strong>{llmInfo.provider || llmInfo.model}</strong> — grounded in your documents, cited.
+            🧠 Generative answers via <strong>{llmInfo.provider || llmInfo.model}</strong> — grounded in your documents, cited. Runs on our own servers; your data never leaves.
           </div>
         )}
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
@@ -401,7 +401,12 @@ function DocsTab({ kb }) {
                 <td>
                   {d.status === 'ready' && <span className="badge badge-green">ready</span>}
                   {d.status === 'processing' && <span className="badge badge-amber">processing…</span>}
-                  {d.status === 'failed' && <span className="badge badge-red" title={d.error}>failed</span>}
+                  {d.status === 'failed' && (
+                    <span>
+                      <span className="badge badge-red">failed</span>
+                      {d.error && <span className="block text-xs text-red-600 mt-1 max-w-[240px]">{d.error}</span>}
+                    </span>
+                  )}
                 </td>
                 <td className="text-slate-500 text-sm">{d.created_at?.slice(0, 10)}</td>
                 <td><button className="btn btn-ghost btn-sm" onClick={() => remove(d.id)}>🗑</button></td>

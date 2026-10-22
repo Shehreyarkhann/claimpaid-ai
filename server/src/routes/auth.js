@@ -34,7 +34,7 @@ router.post('/login', (req, res) => {
 router.get('/me', authRequired, (req, res) => {
   const user = db.prepare('SELECT id, org_id, name, email, role FROM users WHERE id = ?').get(req.user.id);
   const org = db.prepare('SELECT id, name FROM orgs WHERE id = ?').get(req.orgId);
-  res.json({ user, org });
+  res.json({ user, org, plan: req.plan || null, plan_status: req.plan_status || null, products: req.products || { rcm: true, ai: true } });
 });
 
 // Team management (owner/admin)

@@ -15,6 +15,7 @@ function parseHash() {
 
 export default function App() {
   const [user, setUser] = useState(null);
+  const [products, setProducts] = useState(null);
   const [view, setView] = useState({ page: 'kbs' });
   const [pub, setPub] = useState(parseHash());
   const [ready, setReady] = useState(false);
@@ -29,7 +30,7 @@ export default function App() {
     if (pub) { setReady(true); return; } // public pages need no auth
     if (!getToken()) { setReady(true); return; }
     authFetch('/api/auth/me').then((r) => r.json()).then((d) => {
-      setUser(d.user); setReady(true);
+      setUser(d.user); setProducts(d.products || { rcm: true, ai: true }); setReady(true);
     }).catch(() => setReady(true));
   }, [pub]);
 
@@ -38,6 +39,28 @@ export default function App() {
   // public routes (share page + embed widget) — no login
   if (pub?.page === 'widget') return <WidgetPage slug={pub.slug} embed />;
   if (pub?.page === 'share') return <WidgetPage slug={pub.slug} />;
+
+  // Stripe return from AI-plan checkout (?billing=success on /ai/app/)
+  const q = new URLSearchParams(window.location.search);
+  if (q.get('billing') === 'success' || q.get('billing') === 'cancelled') {
+    window.history.replaceState({}, '', '/ai/app/');
+  }
+
+  // RCM-Starter-only subscribers don't get the AI app
+  if (user && products && products.ai === false) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-6" style={{ background: 'linear-gradient(135deg,#0b1120 0%,#1e1b4b 60%,#312e81 100%)' }}>
+        <div className="max-w-md w-full text-center">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4" style={{ background: 'linear-gradient(135deg,#8b5cf6,#6d28d9)' }}>
+            <span className="text-white text-2xl font-black">A</span>
+          </div>
+          <h1 className="text-white text-2xl font-bold mb-2">ClaimPaid AI isn't on your plan</h1>
+          <p className="text-violet-200/70 text-sm mb-6">Your RCM Starter subscription covers the RCM dashboard only. Upgrade to RCM Pro + AI to unlock the AI assistant.</p>
+          <a href="/app/" className="btn btn-primary w-full !py-3">Back to the RCM app →</a>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <ToastProvider>

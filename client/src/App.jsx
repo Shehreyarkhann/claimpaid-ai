@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ToastProvider } from './components/ui';
+import ErrorBoundary from './components/ErrorBoundary';
 import { getToken, authFetch } from './auth';
 import AuthPages from './pages/AuthPages';
 import Shell, { KnowledgeBases, ApiKeys, Team } from './pages/Shell';
@@ -68,10 +69,14 @@ export default function App() {
         <AuthPages onAuth={setUser} />
       ) : (
         <Shell user={user} view={view} setView={setView}>
+          {/* ErrorBoundary resets per view so a crashing tab shows a
+              recoverable card instead of blank-screening the whole app. */}
+          <ErrorBoundary key={view.page + ':' + (view.kbId || '')} fallbackLabel="This tab">
           {view.page === 'kbs' && <KnowledgeBases setView={setView} />}
           {view.page === 'kb' && <KBDetail kbId={view.kbId} setView={setView} />}
           {view.page === 'keys' && <ApiKeys />}
           {view.page === 'team' && <Team user={user} />}
+          </ErrorBoundary>
         </Shell>
       )}
     </ToastProvider>

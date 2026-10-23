@@ -117,4 +117,4 @@ function loadKb(req, res, next) {
   next();
 }
 
-module.exports = { signToken, authRequired, requireRole, loadKb, SECRET };
+module.exports = { signToken, authRequired, requireRole, loadKb, SECRET, RCM_SECRET };

@@ -20,6 +20,7 @@ app.use('/api/kb/:kbId/sources', require('./routes/sources'));
 app.use('/api/kb/:kbId/autopilot', require('./routes/autopilot'));
 app.use('/api/keys', require('./routes/apikeys'));
 app.use('/api/v1', require('./routes/apikeys').v1);
+app.use('/api/v1', require('./routes/codeassist'));
 app.use('/api/share', require('./routes/share'));
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));

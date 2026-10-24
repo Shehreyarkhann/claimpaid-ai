@@ -65,17 +65,32 @@ app.listen(PORT, () => {
 });
 
 // --- LLM warmup: preload the model into memory so the first user query isn't a cold start ---
+// Retries until it succeeds: Ollama may still be starting (or restarting for a
+// keep-alive change) when the AI service boots. Without this, the first query
+// pays a 60s+ cold load and looks broken.
 setTimeout(() => {
-  try {
-    const { llmEnabled, LLM_BASE, LLM_MODEL } = require('./rag');
-    if (!llmEnabled() || !LLM_BASE.includes('11434')) return;
-    fetch(`${LLM_BASE}/api/generate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: LLM_MODEL, prompt: 'hi', stream: false, options: { num_predict: 1 } }),
-      signal: AbortSignal.timeout(120000),
-    }).then(() => console.log('[warmup] LLM model preloaded')).catch((e) => console.log('[warmup] skipped:', e.message));
-  } catch (e) { console.log('[warmup] skipped:', e.message); }
+  let attempts = 0;
+  const warmup = async () => {
+    attempts++;
+    try {
+      const { llmEnabled, LLM_BASE, LLM_MODEL } = require('./rag');
+      if (!llmEnabled() || !LLM_BASE.includes('11434')) return;
+      await fetch(`${LLM_BASE}/api/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: LLM_MODEL, prompt: 'hi', stream: false, options: { num_predict: 1 } }),
+        signal: AbortSignal.timeout(120000),
+      });
+      console.log('[warmup] LLM model preloaded');
+    } catch (e) {
+      if (attempts < 10) {
+        setTimeout(warmup, 30000);
+      } else {
+        console.log('[warmup] gave up after 10 attempts:', e.message);
+      }
+    }
+  };
+  warmup();
 }, 15000);
 
 // --- Autopilot: re-crawl all sources once a day, learn without human input ---

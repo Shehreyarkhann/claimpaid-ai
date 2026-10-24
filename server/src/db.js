@@ -124,6 +124,11 @@ function initSchema() {
   `);
   // lightweight migrations for existing DBs
   try { db.exec(`ALTER TABLE knowledge_bases ADD COLUMN web_fallback INTEGER NOT NULL DEFAULT 0`); } catch {}
+  // Widget (public) conversations are grouped per anonymous visitor so the
+  // embed can offer history/switching without accounts — the visitor id is a
+  // random token the widget keeps in localStorage, never personal data.
+  try { db.exec(`ALTER TABLE conversations ADD COLUMN visitor_id TEXT`); } catch {}
+  try { db.exec(`CREATE INDEX IF NOT EXISTS idx_convo_visitor ON conversations(kb_id, visitor_id, created_at)`); } catch {}
   try { db.exec(`ALTER TABLE documents ADD COLUMN content_hash TEXT`); } catch {}
   try { db.exec(`ALTER TABLE orgs ADD COLUMN rcm_org_id INTEGER`); } catch {}
   try { db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_orgs_rcm_org ON orgs(rcm_org_id)`); } catch {}

@@ -1,6 +1,30 @@
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../auth.js';
 
+// Anonymous per-browser identity for the public widget: lets a visitor see
+// and resume THEIR OWN chats (last 24 hours) without an account. Stored in
+// localStorage so history survives closing the tab — sessionStorage (the old
+// behavior) lost everything the moment the tab closed.
+function getVisitorId() {
+  let v = localStorage.getItem('cp-visitor-id');
+  if (!v) {
+    v = (crypto.randomUUID ? crypto.randomUUID() : `v-${Date.now()}-${Math.random().toString(36).slice(2, 12)}`);
+    localStorage.setItem('cp-visitor-id', v);
+  }
+  return v;
+}
+
+function fmtWhen(ts) {
+  if (!ts) return '';
+  const d = new Date(String(ts).replace(' ', 'T') + 'Z');
+  if (Number.isNaN(d.getTime())) return '';
+  const now = new Date();
+  const sameDay = d.toDateString() === now.toDateString();
+  return sameDay
+    ? d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+    : d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' + d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+}
+
 // Public chat page: full-page share view, or compact embed widget.
 export default function WidgetPage({ slug, embed }) {
   const [kb, setKb] = useState(null);
@@ -8,14 +32,50 @@ export default function WidgetPage({ slug, embed }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [streaming, setStreaming] = useState(false);
-  const [convoId, setConvoId] = useState(() => sessionStorage.getItem(`ab-convo-${slug}`) || null);
+  const [convoId, setConvoId] = useState(null);
+  const [convos, setConvos] = useState([]);
+  const [showHistory, setShowHistory] = useState(false);
+  const visitorRef = useRef(null);
+  if (!visitorRef.current) visitorRef.current = getVisitorId();
   const bottomRef = useRef(null);
+
+  const loadHistory = () => fetch(api(`/api/share/kb/${slug}/conversations?visitor_id=${visitorRef.current}`))
+    .then((r) => r.json())
+    .then((d) => { if (Array.isArray(d.conversations)) setConvos(d.conversations); })
+    .catch(() => {});
+
+  const openConvo = async (id) => {
+    setShowHistory(false);
+    try {
+      const r = await fetch(api(`/api/share/kb/${slug}/conversations/${id}?visitor_id=${visitorRef.current}`));
+      const d = await r.json();
+      if (!r.ok || !d.conversation) throw new Error('gone');
+      setConvoId(d.conversation.id);
+      setMessages(d.conversation.messages.map((m) => ({ role: m.role, content: m.content, citations: m.citations || [] })));
+      localStorage.setItem(`ab-convo-${slug}`, String(d.conversation.id));
+    } catch {
+      // Older than 24h or not this visitor's — start fresh instead of erroring.
+      newChat();
+    }
+  };
+
+  function newChat() {
+    setConvoId(null);
+    setMessages([]);
+    setShowHistory(false);
+    localStorage.removeItem(`ab-convo-${slug}`);
+  }
 
   useEffect(() => {
     fetch(api(`/api/share/kb/${slug}`)).then((r) => r.json()).then((d) => {
       if (d.error) setErr(d.error);
       else setKb(d.kb);
     }).catch(() => setErr('Could not load'));
+    loadHistory();
+    // Restore the most recent conversation so history "holds" across visits.
+    const saved = localStorage.getItem(`ab-convo-${slug}`);
+    if (saved) openConvo(saved);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug]);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
@@ -30,7 +90,7 @@ export default function WidgetPage({ slug, embed }) {
     try {
       const res = await fetch(api(`/api/share/kb/${slug}/chat`), {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, conversation_id: convoId }),
+        body: JSON.stringify({ message: text, conversation_id: convoId, visitor_id: visitorRef.current }),
       });
       if (!res.ok) throw new Error('Chat failed');
       const reader = res.body.getReader();
@@ -40,6 +100,7 @@ export default function WidgetPage({ slug, embed }) {
         const c = [...m]; const last = { ...c[c.length - 1] };
         last.content += t; c[c.length - 1] = last; return c;
       });
+      let streamError = null;
       for (;;) {
         const { done, value } = await reader.read();
         if (done) break;
@@ -55,16 +116,27 @@ export default function WidgetPage({ slug, embed }) {
           try { data = JSON.parse(dataLine.slice(5)); } catch { continue; }
           if (type === 'convo' && data.conversation_id) {
             setConvoId(data.conversation_id);
-            sessionStorage.setItem(`ab-convo-${slug}`, data.conversation_id);
+            localStorage.setItem(`ab-convo-${slug}`, String(data.conversation_id));
           } else if (type === 'meta') {
             setMessages((m) => { const c = [...m]; const l = { ...c[c.length - 1] }; l.citations = data.citations || []; c[c.length - 1] = l; return c; });
           } else if (type === 'token' && data.text) append(data.text);
-          else if (type === 'error') throw new Error(data.error);
+          else if (type === 'error') streamError = data.error || 'Something went wrong';
         }
       }
+      if (streamError) throw new Error(streamError);
       setMessages((m) => { const c = [...m]; const l = { ...c[c.length - 1] }; delete l.streaming; c[c.length - 1] = l; return c; });
+      loadHistory();
     } catch (err2) {
-      setMessages((m) => m.slice(0, -1));
+      // Never leave a silently empty bubble — say what happened and how to retry.
+      setMessages((m) => {
+        const c = [...m]; const l = { ...c[c.length - 1] };
+        if (l && l.role === 'assistant') {
+          l.streaming = false;
+          l.content = l.content || '⚠️ I couldn\'t get an answer just now — the assistant may still be warming up. Give it a few seconds and ask again.';
+          c[c.length - 1] = l;
+        }
+        return c;
+      });
     }
     setStreaming(false);
   }
@@ -78,16 +150,50 @@ export default function WidgetPage({ slug, embed }) {
 
   const wrap = embed ? 'h-screen' : 'min-h-screen';
   return (
-    <div className={`${wrap} flex flex-col bg-white`}>
+    <div className={`${wrap} flex flex-col bg-white relative`}>
       <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-3" style={{ background: 'linear-gradient(135deg,#0b1120,#1e1b4b)' }}>
         <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'linear-gradient(135deg,#8b5cf6,#6d28d9)' }}>
           <span className="text-white font-black">A</span>
         </div>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <div className="text-white font-bold text-sm truncate">{kb.name}</div>
           <div className="text-violet-200/60 text-xs truncate">{kb.org_name} · AI assistant</div>
         </div>
+        <button type="button" onClick={() => setShowHistory((s) => !s)} title="Chat history (last 24 hours)"
+          className="text-violet-200/80 hover:text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg hover:bg-white/10 shrink-0">
+          🕘 History
+        </button>
+        <button type="button" onClick={newChat} title="Start a new chat"
+          className="text-violet-200/80 hover:text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg hover:bg-white/10 shrink-0">
+          ＋ New
+        </button>
       </div>
+
+      {showHistory && (
+        <div className="absolute left-0 right-0 top-[68px] bottom-0 z-20 bg-white flex flex-col">
+          <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+            <div className="font-semibold text-sm text-slate-800">Your chats — last 24 hours</div>
+            <button type="button" className="text-slate-400 hover:text-slate-700 text-lg leading-none" onClick={() => setShowHistory(false)}>✕</button>
+          </div>
+          <div className="flex-1 overflow-y-auto p-3 space-y-1.5">
+            <button type="button" onClick={newChat}
+              className="w-full text-left px-3 py-2.5 rounded-xl text-sm font-semibold text-violet-700 bg-violet-50 hover:bg-violet-100">
+              ＋ Start a new chat
+            </button>
+            {convos.length === 0 && (
+              <p className="text-xs text-slate-400 px-2 py-3">No earlier chats in the last 24 hours.</p>
+            )}
+            {convos.map((c) => (
+              <button key={c.id} type="button" onClick={() => openConvo(c.id)}
+                className={`w-full text-left px-3 py-2.5 rounded-xl text-sm transition-colors ${convoId === c.id ? 'bg-violet-50 text-violet-900 font-semibold' : 'text-slate-600 hover:bg-slate-50'}`}>
+                <span className="block truncate">💬 {c.title}</span>
+                <span className="block text-[11px] text-slate-400 mt-0.5">{fmtWhen(c.created_at)} · {c.msg_count} messages</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {!embed && kb.description && <p className="px-5 py-3 text-sm text-slate-500 bg-slate-50 border-b">{kb.description}</p>}
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {messages.length === 0 && (

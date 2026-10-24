@@ -19,7 +19,13 @@ async function ensureHandbookKb(orgId) {
     const existing = db.prepare(
       'SELECT id FROM knowledge_bases WHERE org_id = ? AND name = ?'
     ).get(orgId, 'Payer Policy Handbook');
-    if (existing) return existing.id;
+    if (existing) {
+      // Deploy #41: the showcase handbook answers from the web when its
+      // documents don't cover a question (needs BRAVE_API_KEY on the server;
+      // without a key it falls back to general knowledge — never a dead end).
+      db.prepare('UPDATE knowledge_bases SET web_fallback = 1 WHERE id = ?').run(existing.id);
+      return existing.id;
+    }
 
     const slugTaken = db.prepare(
       'SELECT id FROM knowledge_bases WHERE public_slug = ?'
@@ -27,8 +33,8 @@ async function ensureHandbookKb(orgId) {
     const slug = slugTaken ? null : 'payer-policy-handbook';
 
     const kbId = Number(db.prepare(`
-      INSERT INTO knowledge_bases (org_id, name, description, system_prompt, welcome_message, public_enabled, public_slug)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO knowledge_bases (org_id, name, description, system_prompt, welcome_message, public_enabled, public_slug, web_fallback)
+      VALUES (?, ?, ?, ?, ?, ?, ?, 1)
     `).run(
       orgId,
       'Payer Policy Handbook',

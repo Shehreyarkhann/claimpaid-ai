@@ -171,6 +171,7 @@ function ChatTab({ kb }) {
     <div className="flex gap-4" style={{ height: 'calc(100vh - 220px)', minHeight: 480 }}>
       <div className="w-60 shrink-0 card p-3 overflow-y-auto hidden md:block">
         <button className="btn btn-outline btn-sm w-full mb-3" onClick={newChat}>+ New chat</button>
+        <p className="text-[11px] uppercase tracking-wide text-slate-400 px-1 mb-2">History — last 24 hours</p>
         {convos.map((c) => (
           <button key={c.id} onClick={() => openConvo(c.id)}
             className={`w-full text-left px-3 py-2.5 rounded-xl text-sm mb-1 truncate transition-colors ${convoId === c.id ? 'bg-violet-50 text-violet-900 font-semibold' : 'text-slate-600 hover:bg-slate-50'}`}>

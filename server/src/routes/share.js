@@ -15,12 +15,56 @@ router.get('/kb/:slug', (req, res) => {
   res.json({ kb });
 });
 
+const HISTORY_WINDOW = `-24 hours`; // chat history surfaces show the last 24h only
+
+function getPublicKb(slug) {
+  return db.prepare('SELECT * FROM knowledge_bases WHERE public_slug = ? AND public_enabled = 1').get(slug);
+}
+
+function cleanVisitor(v) {
+  const s = String(v || '').trim();
+  return /^[A-Za-z0-9-]{8,64}$/.test(s) ? s : null;
+}
+
+// Public chat history for one anonymous visitor (widget history drawer).
+// Only conversations stamped with that visitor id, last 24 hours.
+router.get('/kb/:slug/conversations', (req, res) => {
+  const kb = getPublicKb(req.params.slug);
+  if (!kb) return res.status(404).json({ error: 'Not found or not public' });
+  const visitor = cleanVisitor(req.query.visitor_id);
+  if (!visitor) return res.status(400).json({ error: 'visitor_id required' });
+  const conversations = db.prepare(`
+    SELECT c.id, c.title, c.created_at,
+      (SELECT COUNT(*) FROM messages m WHERE m.convo_id = c.id) AS msg_count
+    FROM conversations c
+    WHERE c.kb_id = ? AND c.is_public = 1 AND c.visitor_id = ?
+      AND c.created_at >= datetime('now', '${HISTORY_WINDOW}')
+    ORDER BY c.created_at DESC LIMIT 30
+  `).all(kb.id, visitor);
+  res.json({ conversations });
+});
+
+router.get('/kb/:slug/conversations/:id', (req, res) => {
+  const kb = getPublicKb(req.params.slug);
+  if (!kb) return res.status(404).json({ error: 'Not found or not public' });
+  const visitor = cleanVisitor(req.query.visitor_id);
+  if (!visitor) return res.status(400).json({ error: 'visitor_id required' });
+  const convo = db.prepare(`
+    SELECT * FROM conversations WHERE id = ? AND kb_id = ? AND is_public = 1 AND visitor_id = ?
+      AND created_at >= datetime('now', '${HISTORY_WINDOW}')
+  `).get(req.params.id, kb.id, visitor);
+  if (!convo) return res.status(404).json({ error: 'Not found' });
+  convo.messages = db.prepare('SELECT id, role, content, citations, created_at FROM messages WHERE convo_id = ? ORDER BY id')
+    .all(convo.id).map((m) => ({ ...m, citations: JSON.parse(m.citations || '[]') }));
+  res.json({ conversation: convo });
+});
+
 // Public streaming chat (no login; rate-limit by IP in front of this in production)
 router.post('/kb/:slug/chat', async (req, res) => {
-  const kb = db.prepare('SELECT * FROM knowledge_bases WHERE public_slug = ? AND public_enabled = 1')
-    .get(req.params.slug);
+  const kb = getPublicKb(req.params.slug);
   if (!kb) return res.status(404).json({ error: 'Not found or not public' });
   const { message, conversation_id } = req.body || {};
+  const visitor = cleanVisitor((req.body || {}).visitor_id);
   if (!message?.trim()) return res.status(400).json({ error: 'Message is required' });
 
   const ready = db.prepare(`SELECT COUNT(*) c FROM documents WHERE kb_id = ? AND status = 'ready'`).get(kb.id).c;
@@ -28,14 +72,17 @@ router.post('/kb/:slug/chat', async (req, res) => {
 
   let convoId = conversation_id;
   if (convoId) {
-    const exists = db.prepare('SELECT id FROM conversations WHERE id = ? AND kb_id = ? AND is_public = 1')
+    // Resume only the visitor's own conversation (visitor-stamped rows);
+    // legacy rows without a stamp stay resumable only without a visitor id.
+    const exists = db.prepare(`SELECT id, visitor_id FROM conversations WHERE id = ? AND kb_id = ? AND is_public = 1
+      AND created_at >= datetime('now', '${HISTORY_WINDOW}')`)
       .get(convoId, kb.id);
-    if (!exists) convoId = null;
+    if (!exists || (exists.visitor_id && exists.visitor_id !== visitor)) convoId = null;
   }
   if (!convoId) {
     convoId = db.prepare(`
-      INSERT INTO conversations (kb_id, org_id, user_id, title, is_public) VALUES (?, ?, NULL, ?, 1)
-    `).run(kb.id, kb.org_id, message.trim().slice(0, 60)).lastInsertRowid;
+      INSERT INTO conversations (kb_id, org_id, user_id, title, is_public, visitor_id) VALUES (?, ?, NULL, ?, 1, ?)
+    `).run(kb.id, kb.org_id, message.trim().slice(0, 60), visitor).lastInsertRowid;
   }
   const history = db.prepare(`SELECT role, content FROM messages WHERE convo_id = ? ORDER BY id DESC LIMIT 8`)
     .all(convoId).reverse();

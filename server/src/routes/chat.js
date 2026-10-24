@@ -8,19 +8,21 @@ const { resolveAiLimit, checkAiQuota, recordAiQuery } = require('../usage');
 const router = express.Router({ mergeParams: true });
 router.use(authRequired, requireAiAccess, loadKb);
 
-// List conversations
+// List conversations — chat history shows the last 24 hours only
 router.get('/conversations', (req, res) => {
   const convos = db.prepare(`
     SELECT c.*, (SELECT COUNT(*) FROM messages m WHERE m.convo_id = c.id) AS msg_count
     FROM conversations c WHERE c.kb_id = ? AND c.user_id = ?
+      AND c.created_at >= datetime('now', '-24 hours')
     ORDER BY c.created_at DESC LIMIT 50
   `).all(req.kb.id, req.user.id);
   res.json({ conversations: convos, llm: llmEnabled(), model: llmEnabled() ? LLM_MODEL : null, provider: providerLabel() });
 });
 
-// Get conversation with messages
+// Get conversation with messages (same 24h window as the list)
 router.get('/conversations/:id', (req, res) => {
-  const convo = db.prepare('SELECT * FROM conversations WHERE id = ? AND kb_id = ? AND user_id = ?')
+  const convo = db.prepare(`SELECT * FROM conversations WHERE id = ? AND kb_id = ? AND user_id = ?
+      AND created_at >= datetime('now', '-24 hours')`)
     .get(req.params.id, req.kb.id, req.user.id);
   if (!convo) return res.status(404).json({ error: 'Not found' });
   convo.messages = db.prepare('SELECT id, role, content, citations, feedback, created_at FROM messages WHERE convo_id = ? ORDER BY id')
@@ -66,7 +68,8 @@ router.post('/', async (req, res) => {
 
   let convoId = conversation_id;
   if (convoId) {
-    const exists = db.prepare('SELECT id FROM conversations WHERE id = ? AND kb_id = ? AND user_id = ?')
+    const exists = db.prepare(`SELECT id FROM conversations WHERE id = ? AND kb_id = ? AND user_id = ?
+      AND created_at >= datetime('now', '-24 hours')`)
       .get(convoId, req.kb.id, req.user.id);
     if (!exists) convoId = null;
   }

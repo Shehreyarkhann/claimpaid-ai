@@ -111,6 +111,9 @@ function ChatTab({ kb }) {
       });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
+        if (res.status === 402 && d.error === 'ai_query_limit_reached') {
+          throw new Error((d.message || 'AI query limit reached.') + ' Open Billing in the RCM app to upgrade.');
+        }
         throw new Error(d.error || 'Chat failed');
       }
       const reader = res.body.getReader();

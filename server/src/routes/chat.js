@@ -3,6 +3,7 @@ const { db } = require('../db');
 const { authRequired, loadKb } = require('../auth');
 const { requireAiAccess } = require('../plans');
 const { answerQuestion, llmEnabled, LLM_MODEL, providerLabel } = require('../rag');
+const { resolveAiLimit, checkAiQuota, recordAiQuery } = require('../usage');
 
 const router = express.Router({ mergeParams: true });
 router.use(authRequired, requireAiAccess, loadKb);
@@ -55,6 +56,13 @@ router.post('/', async (req, res) => {
 
   const ready = db.prepare(`SELECT COUNT(*) c FROM documents WHERE kb_id = ? AND status = 'ready'`).get(req.kb.id).c;
   if (!ready) return res.status(400).json({ error: 'Add at least one document to the knowledge base first' });
+
+  // Plan quota: one metered AI query per accepted chat message, counted per
+  // RCM org per UTC calendar month. Over quota => 402 with an upgrade path.
+  const limit = resolveAiLimit(req);
+  const quota = checkAiQuota(req.rcmOrgId, limit, req.plan);
+  if (!quota.allowed) return res.status(402).json(quota.body);
+  if (req.rcmOrgId && limit !== null && limit !== undefined) recordAiQuery(req.rcmOrgId);
 
   let convoId = conversation_id;
   if (convoId) {

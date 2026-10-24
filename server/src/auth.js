@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const { db } = require('./db');
 const { getRcmPlan } = require('./plans');
+const { planLimits } = require('./planLimits');
 
 const SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
 // RCM-issued tokens (same domain, shared localStorage) are accepted so one
@@ -70,6 +71,7 @@ function authRequired(req, res, next) {
       req.rcmOrgId = null;
       // Legacy AI orgs have no RCM subscription — grandfather full access
       req.plan = null;
+      req.limits = null; // null limits = unlimited (grandfathered)
       req.products = { rcm: true, ai: true };
       return next();
     }
@@ -88,7 +90,11 @@ function authRequired(req, res, next) {
         req.user = { id: user.id, org_id: org.id, role: user.role, email: user.email, name: user.name };
         req.orgId = org.id;
         req.rcmOrgId = payload.org;
-        req.plan = plan;
+        // Plan limits: prefer the signed claims embedded by the RCM app at
+        // login (fresh to the login time; refresh on re-login), fall back to
+        // resolving the plan from the RCM planLimits file for legacy tokens.
+        req.plan = payload.plan || plan;
+        req.limits = payload.limits || planLimits().limitsForPlan(req.plan);
         req.plan_status = plan_status;
         req.products = products;
         return next();

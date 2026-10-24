@@ -1,7 +1,7 @@
 const { DatabaseSync } = require('node:sqlite');
 const path = require('path');
 
-const db = new DatabaseSync(path.join(__dirname, '..', 'askbase.db'));
+const db = new DatabaseSync(process.env.ASKBASE_DB_PATH || path.join(__dirname, '..', 'askbase.db'));
 db.exec('PRAGMA journal_mode = WAL;');
 db.exec('PRAGMA foreign_keys = ON;');
 
@@ -127,6 +127,15 @@ function initSchema() {
   try { db.exec(`ALTER TABLE documents ADD COLUMN content_hash TEXT`); } catch {}
   try { db.exec(`ALTER TABLE orgs ADD COLUMN rcm_org_id INTEGER`); } catch {}
   try { db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_orgs_rcm_org ON orgs(rcm_org_id)`); } catch {}
+  // Per-RCM-org, per-month AI query counter (plan quota enforcement)
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS ai_query_usage (
+      rcm_org_id INTEGER NOT NULL,
+      month TEXT NOT NULL, -- 'YYYY-MM', UTC calendar month
+      queries INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY (rcm_org_id, month)
+    );
+  `);
 }
 
 module.exports = { db, initSchema, columnExists };

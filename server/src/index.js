@@ -30,6 +30,21 @@ if (process.env.SEED_DEMO === 'true') {
   try { require('./seed')(); } catch (e) { console.log('seed skipped:', e.message); }
 }
 
+// Backfill the ClaimPaid Support Guide for orgs provisioned before it existed.
+// Idempotent per org; runs in the background so boot is never blocked.
+setImmediate(() => {
+  try {
+    const { db } = require('./db');
+    const { ensureSupportKb } = require('./seed-support');
+    const orgs = db.prepare('SELECT id FROM orgs').all();
+    (async () => {
+      for (const o of orgs) {
+        try { await ensureSupportKb(o.id); } catch (e) { console.error('support kb backfill failed for org', o.id, e.message); }
+      }
+    })();
+  } catch (e) { console.error('support kb backfill skipped:', e.message); }
+});
+
 // static: landing at /, app at /app
 const landingDir = path.join(__dirname, '..', '..', 'landing');
 const clientDist = path.join(__dirname, '..', '..', 'client', 'dist');

@@ -142,60 +142,74 @@ function initSchema() {
     );
   `);
 
-  // ---- Market-launch cleanup (deploy #52, one-time) ----
-  // Removes the pre-launch AI demo org ('Demo Company' + demo@askbase.com +
-  // its Northwind KB). CRITICAL: the public Payer Policy Handbook KB
-  // (public_slug 'payer-policy-handbook') was seeded into that org and the
-  // landing widget + every RCM floating chat point at it — it is MOVED to
-  // the founder's RCM-linked AI org first, never deleted. Marker-guarded;
-  // RCM-linked orgs are never deletion targets.
+  // ---- Market-launch cleanup v2 (deploy #53) ----
+  // Removes the pre-launch AI demo data. #52's version died on a wrong
+  // column name (messages.convo_id) wherever the demo KB had conversations
+  // and never completed in production. v2: FK suspended for the wipe
+  // (orgDelete pattern); junk = the 'Demo Company' org plus every AI org
+  // linked to a pre-launch RCM org (rcm_org_id 1-4: Demo Billing Co., abc,
+  // asd, AB Recoveries — deleted by the RCM cleanup in #52). The public
+  // Payer Policy Handbook KB is MOVED to the founder's AI org first,
+  // wherever it currently sits — the landing widget and every RCM
+  // floating chat point at its slug.
   db.exec(`CREATE TABLE IF NOT EXISTS data_migrations (name TEXT PRIMARY KEY, applied_at TEXT NOT NULL DEFAULT (datetime('now')));`);
-  if (!db.prepare('SELECT name FROM data_migrations WHERE name = ?').get('demo-cleanup-52')) {
+  if (!db.prepare('SELECT name FROM data_migrations WHERE name = ?').get('demo-cleanup-53')) {
    try {
-    const demoOrg = db.prepare("SELECT id FROM orgs WHERE name = 'Demo Company' AND rcm_org_id IS NULL").get();
-    if (demoOrg) {
-      const oid = demoOrg.id;
-      const home = db.prepare("SELECT o.id FROM orgs o JOIN users u ON u.org_id = o.id WHERE u.email = 'shehreyarkhann@outlook.com'").get()
-        || db.prepare('SELECT id FROM orgs WHERE rcm_org_id = 12').get()
-        || db.prepare('SELECT id FROM orgs WHERE rcm_org_id IS NOT NULL ORDER BY id LIMIT 1').get();
-      const handbook = db.prepare("SELECT id FROM knowledge_bases WHERE org_id = ? AND public_slug = 'payer-policy-handbook'").get(oid);
-      let moved = false;
-      if (handbook && home) {
-        db.prepare('UPDATE knowledge_bases SET org_id = ? WHERE id = ?').run(home.id, handbook.id);
-        db.prepare('UPDATE documents SET org_id = ? WHERE kb_id = ?').run(home.id, handbook.id);
-        db.prepare('UPDATE chunks SET org_id = ? WHERE kb_id = ?').run(home.id, handbook.id);
-        moved = true;
-        console.log(`[migration] demo-cleanup-52: public handbook KB ${handbook.id} moved to org ${home.id}`);
-      }
-      // Every OTHER KB in the demo org (Northwind etc.) is deleted in full.
-      const otherKbs = db.prepare('SELECT id FROM knowledge_bases WHERE org_id = ?').all(oid).map((r) => r.id)
+    db.exec('PRAGMA foreign_keys = OFF');
+    const home = db.prepare("SELECT o.id FROM orgs o JOIN users u ON u.org_id = o.id WHERE u.email = 'shehreyarkhann@outlook.com'").get()
+      || db.prepare('SELECT id FROM orgs WHERE rcm_org_id = 12').get();
+    const junk = db.prepare(
+      "SELECT id FROM orgs WHERE (name = 'Demo Company' AND rcm_org_id IS NULL) OR rcm_org_id IN (1, 2, 3, 4)"
+    ).all().map((r) => r.id).filter((id) => !home || id !== home.id);
+    const handbook = junk.length
+      ? db.prepare(`SELECT id, org_id FROM knowledge_bases WHERE public_slug = 'payer-policy-handbook' AND org_id IN (${junk.join(',')})`).get()
+      : null;
+    let keepOrg = null;
+    if (handbook && home) {
+      db.prepare('UPDATE knowledge_bases SET org_id = ? WHERE id = ?').run(home.id, handbook.id);
+      db.prepare('UPDATE documents SET org_id = ? WHERE kb_id = ?').run(home.id, handbook.id);
+      db.prepare('UPDATE chunks SET org_id = ? WHERE kb_id = ?').run(home.id, handbook.id);
+      console.log(`[migration] demo-cleanup-53: public handbook KB ${handbook.id} moved to org ${home.id}`);
+    } else if (handbook) {
+      // No founder org found (unexpected in production): keep the host org
+      // as a user-less public-KB host rather than breaking the live widget.
+      keepOrg = handbook.org_id;
+      db.prepare("UPDATE orgs SET name = 'ClaimPaid Public' WHERE id = ?").run(keepOrg);
+      console.log('[migration] demo-cleanup-53: handbook home org not found — host org renamed, users removed');
+    }
+    const orgTables = db.prepare("SELECT name FROM sqlite_master WHERE type='table'").all().map((r) => r.name)
+      .filter((t) => { try { return db.prepare(`PRAGMA table_info(${t})`).all().some((c) => c.name === 'org_id'); } catch { return false; } });
+    for (const oid of junk) {
+      const kbIds = db.prepare('SELECT id FROM knowledge_bases WHERE org_id = ?').all(oid).map((r) => r.id)
         .filter((id) => !handbook || id !== handbook.id);
-      for (const kbId of otherKbs) {
+      for (const kbId of kbIds) {
         const convoIds = db.prepare('SELECT id FROM conversations WHERE kb_id = ?').all(kbId).map((r) => r.id);
-        for (const cid of convoIds) db.prepare('DELETE FROM messages WHERE conversation_id = ?').run(cid);
+        for (const cid of convoIds) db.prepare('DELETE FROM messages WHERE convo_id = ?').run(cid);
         db.prepare('DELETE FROM conversations WHERE kb_id = ?').run(kbId);
         db.prepare('DELETE FROM chunks WHERE kb_id = ?').run(kbId);
         db.prepare('DELETE FROM documents WHERE kb_id = ?').run(kbId);
+        db.prepare('DELETE FROM sources WHERE kb_id = ?').run(kbId);
         db.prepare('DELETE FROM knowledge_bases WHERE id = ?').run(kbId);
       }
-      db.prepare('DELETE FROM users WHERE org_id = ?').run(oid);
-      if (!handbook || moved) {
-        const orgTables = db.prepare("SELECT name FROM sqlite_master WHERE type='table'").all().map((r) => r.name)
-          .filter((t) => { try { return db.prepare(`PRAGMA table_info(${t})`).all().some((c) => c.name === 'org_id'); } catch { return false; } });
-        for (const t of orgTables) db.prepare(`DELETE FROM ${t} WHERE org_id = ?`).run(oid);
-        db.prepare('DELETE FROM orgs WHERE id = ?').run(oid);
-        console.log('[migration] demo-cleanup-52: AI demo org removed');
-      } else {
-        // No home org found (unexpected in production): keep the org as a
-        // user-less public-KB host rather than breaking the live widget.
-        db.prepare("UPDATE orgs SET name = 'ClaimPaid Public' WHERE id = ?").run(oid);
-        console.log('[migration] demo-cleanup-52: handbook home org not found — demo org renamed, users removed');
+      if (oid === keepOrg) {
+        // The generic sweep would gut the kept handbook KB (its documents,
+        // chunks and conversations still carry this org_id) — purge only
+        // the org's keys and users; the KB loop above handled the rest.
+        db.prepare('DELETE FROM api_keys WHERE org_id = ?').run(oid);
+        db.prepare('DELETE FROM users WHERE org_id = ?').run(oid);
+        continue;
       }
+      for (const t of orgTables) db.prepare(`DELETE FROM ${t} WHERE org_id = ?`).run(oid);
+      db.prepare('DELETE FROM users WHERE org_id = ?').run(oid);
+      db.prepare('DELETE FROM orgs WHERE id = ?').run(oid);
     }
     db.prepare("DELETE FROM users WHERE email = 'demo@askbase.com'").run();
-    db.prepare("INSERT INTO data_migrations (name) VALUES ('demo-cleanup-52')").run();
+    db.prepare("INSERT INTO data_migrations (name) VALUES ('demo-cleanup-53')").run();
+    console.log(`[migration] demo-cleanup-53: removed AI junk orgs [${junk.filter((id) => id !== keepOrg).join(', ')}]`);
    } catch (e) {
-    console.error('[migration] demo-cleanup-52 FAILED (will retry next boot):', e.message);
+    console.error('[migration] demo-cleanup-53 FAILED (will retry next boot):', e.message);
+   } finally {
+    try { db.exec('PRAGMA foreign_keys = ON'); } catch {}
    }
   }
 }

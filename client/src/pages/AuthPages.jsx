@@ -3,7 +3,7 @@ import { api, setToken, setRcmToken, getToken } from '../auth';
 
 export default function AuthPages({ onAuth }) {
   const [mode, setMode] = useState('login'); // login | signup
-  const [form, setForm] = useState({ name: '', orgName: '', email: 'demo@askbase.com', password: 'demo1234' });
+  const [form, setForm] = useState({ name: '', orgName: '', email: '', password: '' });
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
 

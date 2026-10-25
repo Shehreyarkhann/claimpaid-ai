@@ -25,10 +25,8 @@ app.use('/api/share', require('./routes/share'));
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
-// seed on first boot (creates demo org if SEED_DEMO=true and no users exist)
-if (process.env.SEED_DEMO === 'true') {
-  try { require('./seed')(); } catch (e) { console.log('seed skipped:', e.message); }
-}
+// No demo seeding (market launch, deploy #52): the AI app provisions orgs
+// from RCM signups only.
 
 // Backfill the ClaimPaid Support Guide for orgs provisioned before it existed.
 // Idempotent per org; runs in the background so boot is never blocked.

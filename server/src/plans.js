@@ -29,15 +29,32 @@ function productsForPlan(plan) {
   }
 }
 
+// Products honoring status, mirroring the RCM server's productsForOrg
+// (deploy #61): an expired trial unlocks nothing; a subscription canceled
+// DURING the trial keeps its products until the trial end date.
+function productsForOrg(org) {
+  const raw = org.plan_status || 'trialing';
+  if (raw === 'trialing' && org.trial_ends_at && new Date(org.trial_ends_at).getTime() <= Date.now()) {
+    return { rcm: false, ai: false };
+  }
+  if (raw === 'canceled') {
+    if (org.trial_ends_at && new Date(org.trial_ends_at).getTime() > Date.now()) {
+      return productsForPlan(org.plan);
+    }
+    return { rcm: false, ai: false };
+  }
+  return productsForPlan(org.plan);
+}
+
 // Look up the RCM org's plan. Returns { plan, plan_status, products }.
 // Unknown org or unreadable DB => grandfathered full access (never lock out by accident).
 function getRcmPlan(rcmOrgId) {
   const db = rcmDb();
   if (!db || !rcmOrgId) return { plan: null, plan_status: null, products: { rcm: true, ai: true } };
   try {
-    const org = db.prepare('SELECT plan, plan_status FROM orgs WHERE id = ?').get(rcmOrgId);
+    const org = db.prepare('SELECT plan, plan_status, trial_ends_at FROM orgs WHERE id = ?').get(rcmOrgId);
     if (!org) return { plan: null, plan_status: null, products: { rcm: true, ai: true } };
-    return { plan: org.plan || null, plan_status: org.plan_status || null, products: productsForPlan(org.plan) };
+    return { plan: org.plan || null, plan_status: org.plan_status || null, products: productsForOrg(org) };
   } catch {
     return { plan: null, plan_status: null, products: { rcm: true, ai: true } };
   }

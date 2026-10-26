@@ -48,8 +48,8 @@ export function EmptyState({ icon, title, sub, action }) {
   return (
     <div className="card card-pad text-center py-14">
       <div className="text-4xl mb-4">{icon}</div>
-      <h3 className="font-bold text-lg text-slate-800 mb-1">{title}</h3>
-      {sub && <p className="text-sm text-slate-500 max-w-md mx-auto mb-5">{sub}</p>}
+      <h3 className="font-bold text-lg text-stone-800 mb-1">{title}</h3>
+      {sub && <p className="text-sm text-stone-500 max-w-md mx-auto mb-5">{sub}</p>}
       {action}
     </div>
   );
@@ -70,7 +70,7 @@ export function Stat({ label, value, sub }) {
     <div className="stat-card">
       <div className="stat-num">{value}</div>
       <div className="stat-label">{label}</div>
-      {sub && <div className="text-xs text-slate-400 mt-1">{sub}</div>}
+      {sub && <div className="text-xs text-stone-400 mt-1">{sub}</div>}
     </div>
   );
 }

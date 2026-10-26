@@ -60,14 +60,12 @@ export default function AuthPages({ onAuth }) {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4" style={{ background: 'linear-gradient(135deg,#0b1120 0%,#1e1b4b 60%,#312e81 100%)' }}>
+    <div className="min-h-screen flex items-center justify-center px-4" style={{ background: 'linear-gradient(135deg,#17251F 0%,#1F3128 60%,#2A2118 100%)' }}>
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4" style={{ background: 'linear-gradient(135deg,#8b5cf6,#6d28d9)', boxShadow: '0 8px 30px rgba(139,92,246,.5)' }}>
-            <span className="text-white text-2xl font-black">A</span>
-          </div>
+          <img src="/app/claimpaid-icon.webp" alt="ClaimPaid" className="w-14 h-14 rounded-2xl mb-4 mx-auto block" style={{ boxShadow: '0 8px 30px rgba(16,185,129,.35)' }} />
           <h1 className="text-white text-3xl font-black tracking-tight">ClaimPaid AI</h1>
-          <p className="text-violet-200/70 text-sm mt-2">Private AI answers from your documents</p>
+          <p className="text-amber-200/70 text-sm mt-2">Private AI answers from your documents</p>
         </div>
         <div className="card card-pad">
           <div className="tabs mb-6">
@@ -103,8 +101,8 @@ export default function AuthPages({ onAuth }) {
             </form>
           )}
         </div>
-        <p className="text-center mt-6 text-xs text-violet-200/50">
-          <a href="/" className="hover:text-violet-200">← Back to claimpaid.io</a>
+        <p className="text-center mt-6 text-xs text-amber-200/50">
+          <a href="/" className="hover:text-amber-200">← Back to claimpaid.io</a>
         </p>
       </div>
     </div>

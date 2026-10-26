@@ -48,13 +48,13 @@ export default function Shell({ user, view, setView, children }) {
 
   const brand = (iconOnly) => (
     <div className={`flex items-center ${iconOnly ? 'justify-center' : 'gap-3'} px-1`}>
-      <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'linear-gradient(135deg,#8b5cf6,#6d28d9)' }}>
-        <span className="text-white text-lg font-black">A</span>
+      <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'linear-gradient(135deg,#D97706,#B45309)' }}>
+        <img src="/app/claimpaid-icon.webp" alt="ClaimPaid" className="w-9 h-9 rounded-[10px]" />
       </div>
       {!iconOnly && (
         <div className="min-w-0">
           <div className="text-white font-bold text-[15px] leading-tight">ClaimPaid AI</div>
-          <div className="text-slate-400 text-xs truncate">{org?.name || '…'}</div>
+          <div className="text-stone-400 text-xs truncate">{org?.name || '…'}</div>
         </div>
       )}
     </div>
@@ -67,8 +67,8 @@ export default function Shell({ user, view, setView, children }) {
           key={n.id}
           onClick={() => go(n.id)}
           title={iconOnly ? n.label : undefined}
-          className={`flex items-center ${iconOnly ? 'justify-center' : 'gap-3'} px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${view.page === n.id ? 'text-white' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
-          style={view.page === n.id ? { background: 'rgba(139,92,246,.18)', boxShadow: 'inset 0 0 0 1px rgba(139,92,246,.35)' } : {}}
+          className={`flex items-center ${iconOnly ? 'justify-center' : 'gap-3'} px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${view.page === n.id ? 'text-white' : 'text-stone-400 hover:text-white hover:bg-white/5'}`}
+          style={view.page === n.id ? { background: 'rgba(217,119,6,.16)', boxShadow: 'inset 0 0 0 1px rgba(217,119,6,.35)' } : {}}
         >
           <span className="shrink-0">{n.icon}</span>
           {!iconOnly && <span className="truncate">{n.label}</span>}
@@ -80,26 +80,26 @@ export default function Shell({ user, view, setView, children }) {
   const userCard = (iconOnly) => (
     <div className="pt-4 border-t border-white/10">
       {!iconOnly && (
-        <a href="https://claimpaid.io" target="_blank" rel="noreferrer" className="block px-2 pb-3 text-xs text-slate-500 hover:text-white">
-          Part of <span className="font-semibold text-slate-300">ClaimPaid</span> · <span className="text-emerald-400 font-semibold">RCM Platform →</span>
+        <a href="https://claimpaid.io" target="_blank" rel="noreferrer" className="block px-2 pb-3 text-xs text-stone-500 hover:text-white">
+          Part of <span className="font-semibold text-stone-300">ClaimPaid</span> · <span className="text-emerald-400 font-semibold">RCM Platform →</span>
         </a>
       )}
       <div className={`flex items-center ${iconOnly ? 'justify-center' : 'gap-3'} px-2`}>
-        <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0" style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}>
+        <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0" style={{ background: 'linear-gradient(135deg,#B45309,#D97706)' }}>
           {(user?.name || 'U')[0].toUpperCase()}
         </div>
         {!iconOnly && (
           <>
             <div className="flex-1 min-w-0">
               <div className="text-white text-sm font-semibold truncate">{user?.name}</div>
-              <div className="text-slate-500 text-xs capitalize">{user?.role}</div>
+              <div className="text-stone-500 text-xs capitalize">{user?.role}</div>
             </div>
-            <button className="text-slate-500 hover:text-white text-lg" title="Sign out" onClick={signOut}>↪</button>
+            <button className="text-stone-500 hover:text-white text-lg" title="Sign out" onClick={signOut}>↪</button>
           </>
         )}
       </div>
       {iconOnly && (
-        <button className="w-full mt-3 text-slate-500 hover:text-white text-lg" title="Sign out" onClick={signOut}>↪</button>
+        <button className="w-full mt-3 text-stone-500 hover:text-white text-lg" title="Sign out" onClick={signOut}>↪</button>
       )}
     </div>
   );
@@ -107,19 +107,19 @@ export default function Shell({ user, view, setView, children }) {
   return (
     <div className="min-h-screen flex">
       {/* Mobile top bar */}
-      <div className="md:hidden fixed top-0 inset-x-0 z-30 flex items-center gap-3 px-4 py-3" style={{ background: '#0b1120' }}>
+      <div className="md:hidden fixed top-0 inset-x-0 z-30 flex items-center gap-3 px-4 py-3" style={{ background: '#17251F' }}>
         <button onClick={() => setMobileOpen(true)} className="text-white text-xl p-1" aria-label="Open menu">☰</button>
         {brand(false)}
       </div>
 
       {/* Desktop sidebar (collapsible) */}
-      <aside className={`hidden md:flex ${collapsed ? 'w-[76px]' : 'w-64'} shrink-0 min-h-screen py-5 flex-col transition-all duration-200 ${collapsed ? 'px-3' : 'px-5'}`} style={{ background: '#0b1120' }}>
+      <aside className={`hidden md:flex ${collapsed ? 'w-[76px]' : 'w-64'} shrink-0 min-h-screen py-5 flex-col transition-all duration-200 ${collapsed ? 'px-3' : 'px-5'}`} style={{ background: '#17251F' }}>
         <div className="mb-8">
           {brand(collapsed)}
         </div>
         <div className="flex-1">{navButtons(collapsed)}</div>
         <button onClick={toggle} title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          className="mx-auto my-4 w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-white hover:bg-white/10 transition-colors">
+          className="mx-auto my-4 w-8 h-8 rounded-lg flex items-center justify-center text-stone-500 hover:text-white hover:bg-white/10 transition-colors">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: collapsed ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>
             <path d="m15 18-6-6 6-6"/>
           </svg>
@@ -131,10 +131,10 @@ export default function Shell({ user, view, setView, children }) {
       {mobileOpen && (
         <div className="md:hidden fixed inset-0 z-40">
           <div className="absolute inset-0 bg-black/60" onClick={() => setMobileOpen(false)} />
-          <aside className="absolute left-0 top-0 bottom-0 w-72 p-5 flex flex-col overflow-y-auto" style={{ background: '#0b1120' }}>
+          <aside className="absolute left-0 top-0 bottom-0 w-72 p-5 flex flex-col overflow-y-auto" style={{ background: '#17251F' }}>
             <div className="flex items-center justify-between mb-8">
               {brand(false)}
-              <button onClick={() => setMobileOpen(false)} className="text-slate-400 hover:text-white text-xl p-1" aria-label="Close menu">✕</button>
+              <button onClick={() => setMobileOpen(false)} className="text-stone-400 hover:text-white text-xl p-1" aria-label="Close menu">✕</button>
             </div>
             <div className="flex-1">{navButtons(false)}</div>
             {userCard(false)}
@@ -186,14 +186,14 @@ export function KnowledgeBases({ setView }) {
               <button key={k.id} onClick={() => setView({ page: 'kb', kbId: k.id })}
                 className="card card-pad text-left hover:shadow-lg transition-shadow cursor-pointer">
                 <div className="flex items-start justify-between mb-2">
-                  <h3 className="font-bold text-lg text-slate-800">{k.name}</h3>
+                  <h3 className="font-bold text-lg text-stone-800">{k.name}</h3>
                   {k.public_enabled ? <span className="badge badge-green">public</span> : <span className="badge badge-slate">private</span>}
                 </div>
-                {k.description && <p className="text-sm text-slate-500 mb-4 line-clamp-2">{k.description}</p>}
-                <div className="flex gap-4 text-sm text-slate-500">
-                  <span>📄 <strong className="text-slate-700">{k.doc_count}</strong> docs</span>
-                  <span>🧩 <strong className="text-slate-700">{k.chunk_count}</strong> chunks</span>
-                  <span>💬 <strong className="text-slate-700">{k.convo_count}</strong> chats</span>
+                {k.description && <p className="text-sm text-stone-500 mb-4 line-clamp-2">{k.description}</p>}
+                <div className="flex gap-4 text-sm text-stone-500">
+                  <span>📄 <strong className="text-stone-700">{k.doc_count}</strong> docs</span>
+                  <span>🧩 <strong className="text-stone-700">{k.chunk_count}</strong> chunks</span>
+                  <span>💬 <strong className="text-stone-700">{k.convo_count}</strong> chats</span>
                 </div>
               </button>
             ))}
@@ -241,9 +241,9 @@ export function ApiKeys() {
     <div>
       <PageHeader title="API Keys" subtitle="Query any knowledge base programmatically — POST /api/v1/query with your key." />
       {newKey && (
-        <div className="card card-pad mb-4 border-2" style={{ borderColor: '#8b5cf6' }}>
+        <div className="card card-pad mb-4 border-2" style={{ borderColor: '#D97706' }}>
           <p className="label">Your new key — copy it now, it won't be shown again:</p>
-          <code className="block bg-slate-900 text-emerald-300 rounded-xl px-4 py-3 text-sm break-all select-all">{newKey}</code>
+          <code className="block bg-stone-900 text-emerald-300 rounded-xl px-4 py-3 text-sm break-all select-all">{newKey}</code>
           <button className="btn btn-outline btn-sm mt-3" onClick={() => { navigator.clipboard.writeText(newKey); toast.success('Copied'); }}>Copy</button>
         </div>
       )}
@@ -261,15 +261,15 @@ export function ApiKeys() {
             {(keys || []).map((k) => (
               <tr key={k.id}>
                 <td className="font-semibold">{k.name}</td>
-                <td><code className="text-xs bg-slate-100 px-2 py-1 rounded">{k.prefix}…</code></td>
-                <td className="text-slate-500 text-sm">{k.last_used_at || 'never'}</td>
-                <td className="text-slate-500 text-sm">{k.created_at?.slice(0, 10)}</td>
+                <td><code className="text-xs bg-stone-100 px-2 py-1 rounded">{k.prefix}…</code></td>
+                <td className="text-stone-500 text-sm">{k.last_used_at || 'never'}</td>
+                <td className="text-stone-500 text-sm">{k.created_at?.slice(0, 10)}</td>
                 <td><button className="btn btn-danger btn-sm" onClick={() => revoke(k.id)}>Revoke</button></td>
               </tr>
             ))}
           </tbody>
         </table>
-        {keys?.length === 0 && <p className="text-center text-slate-400 py-8 text-sm">No API keys yet.</p>}
+        {keys?.length === 0 && <p className="text-center text-stone-400 py-8 text-sm">No API keys yet.</p>}
       </div>
     </div>
   );

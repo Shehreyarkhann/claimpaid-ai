@@ -29,7 +29,7 @@ function renderMd(text, onCite) {
       flushList();
       const lvl = h[1].length;
       const cls = lvl === 1 ? 'text-lg' : lvl === 2 ? 'text-base' : 'text-sm';
-      out.push(<div key={i} className={`font-bold text-slate-800 mt-3 mb-1 ${cls}`}>{inline(h[2], i)}</div>);
+      out.push(<div key={i} className={`font-bold text-stone-800 mt-3 mb-1 ${cls}`}>{inline(h[2], i)}</div>);
     } else if (/^[-*]\s+/.test(t)) {
       listBuf.push(inline(t.replace(/^[-*]\s+/, ''), i));
     } else if (/^\d+[.)]\s+/.test(t)) {
@@ -171,19 +171,19 @@ function ChatTab({ kb }) {
     <div className="flex gap-4" style={{ height: 'calc(100vh - 220px)', minHeight: 480 }}>
       <div className="w-60 shrink-0 card p-3 overflow-y-auto hidden md:block">
         <button className="btn btn-outline btn-sm w-full mb-3" onClick={newChat}>+ New chat</button>
-        <p className="text-[11px] uppercase tracking-wide text-slate-400 px-1 mb-2">History — last 24 hours</p>
+        <p className="text-[11px] uppercase tracking-wide text-stone-400 px-1 mb-2">History — last 24 hours</p>
         {convos.map((c) => (
           <button key={c.id} onClick={() => openConvo(c.id)}
-            className={`w-full text-left px-3 py-2.5 rounded-xl text-sm mb-1 truncate transition-colors ${convoId === c.id ? 'bg-violet-50 text-violet-900 font-semibold' : 'text-slate-600 hover:bg-slate-50'}`}>
+            className={`w-full text-left px-3 py-2.5 rounded-xl text-sm mb-1 truncate transition-colors ${convoId === c.id ? 'bg-amber-50 text-amber-900 font-semibold' : 'text-stone-600 hover:bg-stone-50'}`}>
             💬 {c.title}
           </button>
         ))}
-        {convos.length === 0 && <p className="text-xs text-slate-400 px-2">No conversations yet.</p>}
+        {convos.length === 0 && <p className="text-xs text-stone-400 px-2">No conversations yet.</p>}
       </div>
 
       <div className="flex-1 card flex flex-col overflow-hidden">
         {/* Mobile conversation switcher */}
-        <div className="md:hidden px-4 py-2.5 border-b border-slate-100 flex gap-2 items-center bg-slate-50/60">
+        <div className="md:hidden px-4 py-2.5 border-b border-stone-100 flex gap-2 items-center bg-stone-50/60">
           <button className="btn btn-outline btn-sm shrink-0" onClick={newChat}>+ New</button>
           <select className="input !py-1.5 text-sm flex-1 min-w-0" value={convoId || ''}
             onChange={(e) => (e.target.value ? openConvo(Number(e.target.value)) : newChat())}>
@@ -198,7 +198,7 @@ function ChatTab({ kb }) {
           </div>
         )}
         {docState && docState.total === 0 && (
-          <div className="px-5 py-2.5 bg-sky-50 border-b border-sky-100 text-xs text-sky-800">
+          <div className="px-5 py-2.5 bg-stone-100 border-b border-stone-200 text-xs text-stone-800">
             📄 <strong>No documents yet.</strong> Add files, paste a URL, or connect a sitemap in the <strong>Documents</strong> tab — then ask away.
           </div>
         )}
@@ -207,7 +207,7 @@ function ChatTab({ kb }) {
             ⚡ <strong>Demo mode:</strong> answers are extracted from your documents. Set <code>LLM_PROVIDER</code> (ollama, openai, groq…) for generative answers.
           </div>
         ) : (
-          <div className="px-5 py-2.5 bg-violet-50 border-b border-violet-100 text-xs text-violet-800">
+          <div className="px-5 py-2.5 bg-amber-50 border-b border-amber-100 text-xs text-amber-800">
             🧠 Generative answers via <strong>{llmInfo.provider || llmInfo.model}</strong> — grounded in your documents, cited. Runs on our own servers; your data never leaves.
           </div>
         )}
@@ -215,8 +215,8 @@ function ChatTab({ kb }) {
           {messages.length === 0 && (
             <div className="h-full flex flex-col items-center justify-center text-center py-16">
               <div className="text-5xl mb-4">✨</div>
-              <h3 className="font-bold text-lg text-slate-800 mb-2">{kb.welcome_message || `Ask anything about ${kb.name}`}</h3>
-              <p className="text-sm text-slate-500 max-w-sm">Answers come with citations — click any [n] to see the exact source passage.</p>
+              <h3 className="font-bold text-lg text-stone-800 mb-2">{kb.welcome_message || `Ask anything about ${kb.name}`}</h3>
+              <p className="text-sm text-stone-500 max-w-sm">Answers come with citations — click any [n] to see the exact source passage.</p>
             </div>
           )}
           {messages.map((m, i) => (
@@ -227,7 +227,7 @@ function ChatTab({ kb }) {
                 <div>
                   <div className="chat-bubble-ai prose-chat">
                     {m.content ? renderMd(m.content, openCite) : (
-                      <span className="inline-flex items-center gap-2 text-slate-500 text-sm">
+                      <span className="inline-flex items-center gap-2 text-stone-500 text-sm">
                         <span><span className="typing-dot" /><span className="typing-dot" /><span className="typing-dot" /></span>
                         Thinking{thinkSecs > 3 ? `… ${thinkSecs}s` : '…'}
                       </span>
@@ -235,7 +235,7 @@ function ChatTab({ kb }) {
                   </div>
                   {m.citations?.length > 0 && !m.streaming && (
                     <div className="flex items-center gap-2 mt-2 ml-1 flex-wrap">
-                      <span className="text-xs text-slate-400">Sources:</span>
+                      <span className="text-xs text-stone-400">Sources:</span>
                       {m.citations.map((c) => (
                         <button key={c.n} className="cite" onClick={() => setCiteOpen(c)} title={c.filename}>[{c.n}] {c.filename}</button>
                       ))}
@@ -253,7 +253,7 @@ function ChatTab({ kb }) {
           ))}
           <div ref={bottomRef} />
         </div>
-        <form onSubmit={send} className="p-4 border-t border-slate-100 flex gap-2">
+        <form onSubmit={send} className="p-4 border-t border-stone-100 flex gap-2">
           <input className="input" value={input} onChange={(e) => setInput(e.target.value)}
             placeholder={`Ask about ${kb.name}…`} disabled={streaming} />
           <button className="btn btn-primary" disabled={streaming || !input.trim()}>
@@ -269,12 +269,12 @@ function ChatTab({ kb }) {
             <div className="flex items-start justify-between mb-4">
               <div>
                 <span className="badge badge-violet mb-2">Source [{citeOpen.n}]</span>
-                <h3 className="font-bold text-slate-800">{citeOpen.filename}</h3>
-                <p className="text-xs text-slate-400">chunk {citeOpen.chunk_index} · relevance {citeOpen.score}</p>
+                <h3 className="font-bold text-stone-800">{citeOpen.filename}</h3>
+                <p className="text-xs text-stone-400">chunk {citeOpen.chunk_index} · relevance {citeOpen.score}</p>
               </div>
               <button className="btn btn-ghost btn-sm" onClick={() => setCiteOpen(null)}>✕</button>
             </div>
-            <div className="bg-violet-50/60 border border-violet-100 rounded-2xl p-5 text-sm leading-relaxed text-slate-700 whitespace-pre-wrap">
+            <div className="bg-amber-50/60 border border-amber-100 rounded-2xl p-5 text-sm leading-relaxed text-stone-700 whitespace-pre-wrap">
               {citeOpen.text}
             </div>
           </div>
@@ -325,12 +325,12 @@ function SourcesManager({ kb }) {
   }
 
   return (
-    <div className="card card-pad mb-6" style={{ borderColor: '#c4b5fd', background: 'linear-gradient(180deg,#faf8ff,#fff)' }}>
+    <div className="card card-pad mb-6" style={{ borderColor: '#E3B959', background: 'linear-gradient(180deg,#FBF3E4,#fff)' }}>
       <div className="flex items-center gap-2 mb-1">
         <h3 className="font-bold">🤖 Autopilot sources</h3>
         <span className="badge badge-violet">self-learning</span>
       </div>
-      <p className="text-sm text-slate-500 mb-4">Point ClaimPaid AI at your website's sitemap. It crawls new and changed pages on its own every day — no uploads, no maintenance.</p>
+      <p className="text-sm text-stone-500 mb-4">Point ClaimPaid AI at your website's sitemap. It crawls new and changed pages on its own every day — no uploads, no maintenance.</p>
       <form onSubmit={add} className="flex gap-2 mb-4 flex-wrap">
         <select className="input !w-auto" value={type} onChange={(e) => setType(e.target.value)}>
           <option value="sitemap">Sitemap</option>
@@ -341,10 +341,10 @@ function SourcesManager({ kb }) {
         <button className="btn btn-primary btn-sm" disabled={busy}>{busy ? 'Adding…' : 'Add source'}</button>
       </form>
       {sources.map((s) => (
-        <div key={s.id} className="flex items-center justify-between gap-3 py-2.5 border-t border-violet-100 text-sm">
+        <div key={s.id} className="flex items-center justify-between gap-3 py-2.5 border-t border-amber-100 text-sm">
           <div className="min-w-0">
-            <p className="font-medium text-slate-700 truncate">🔗 {s.url}</p>
-            <p className="text-xs text-slate-400">
+            <p className="font-medium text-stone-700 truncate">🔗 {s.url}</p>
+            <p className="text-xs text-stone-400">
               {s.last_run_at ? `last crawl ${s.last_run_at.slice(0, 16).replace('T', ' ')} · ${s.last_status}` : 'first crawl running…'}
             </p>
           </div>
@@ -354,7 +354,7 @@ function SourcesManager({ kb }) {
           </div>
         </div>
       ))}
-      {sources.length === 0 && <p className="text-xs text-slate-400">No autopilot sources yet — add your sitemap above.</p>}
+      {sources.length === 0 && <p className="text-xs text-stone-400">No autopilot sources yet — add your sitemap above.</p>}
     </div>
   );
 }
@@ -421,14 +421,14 @@ function DocsTab({ kb }) {
           onDragLeave={() => setDrag(false)}
           onDrop={(e) => { e.preventDefault(); setDrag(false); uploadFiles(e.dataTransfer.files); }}>
           <div className="text-3xl mb-2">📤</div>
-          <p className="font-semibold text-slate-700">{busy ? 'Uploading…' : 'Drop files here or click to upload'}</p>
-          <p className="text-xs text-slate-400 mt-1">PDF, DOCX, TXT, MD, CSV — up to 25 MB each</p>
+          <p className="font-semibold text-stone-700">{busy ? 'Uploading…' : 'Drop files here or click to upload'}</p>
+          <p className="text-xs text-stone-400 mt-1">PDF, DOCX, TXT, MD, CSV — up to 25 MB each</p>
           <input ref={fileRef} type="file" multiple className="hidden" accept=".pdf,.docx,.txt,.md,.csv"
             onChange={(e) => uploadFiles(e.target.files)} />
         </div>
         <form onSubmit={importUrl} className="card card-pad">
-          <p className="font-semibold text-slate-700 mb-1">🌐 Import from URL</p>
-          <p className="text-xs text-slate-400 mb-3">Paste a docs page, help article, or policy URL.</p>
+          <p className="font-semibold text-stone-700 mb-1">🌐 Import from URL</p>
+          <p className="text-xs text-stone-400 mb-3">Paste a docs page, help article, or policy URL.</p>
           <div className="flex gap-2">
             <input className="input" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://…" />
             <button className="btn btn-outline btn-sm" disabled={busy}>Import</button>
@@ -455,13 +455,13 @@ function DocsTab({ kb }) {
                     </span>
                   )}
                 </td>
-                <td className="text-slate-500 text-sm">{d.created_at?.slice(0, 10)}</td>
+                <td className="text-stone-500 text-sm">{d.created_at?.slice(0, 10)}</td>
                 <td><button className="btn btn-ghost btn-sm" onClick={() => remove(d.id)}>🗑</button></td>
               </tr>
             ))}
           </tbody>
         </table>
-        {docs?.length === 0 && <p className="text-center text-slate-400 py-10 text-sm">No documents yet — upload your first one above.</p>}
+        {docs?.length === 0 && <p className="text-center text-stone-400 py-10 text-sm">No documents yet — upload your first one above.</p>}
         {docs === null && <div className="p-6"><Skeleton className="h-10" /></div>}
       </div>
     </div>
@@ -507,14 +507,14 @@ function InsightsTab({ kb }) {
 
       <div className="card card-pad mb-4">
         <h3 className="font-bold mb-1">❓ Questions it couldn't answer</h3>
-        <p className="text-sm text-slate-500 mb-4">This is the system telling you what to teach it. One click per gap — no prompt engineering, no retraining.</p>
+        <p className="text-sm text-stone-500 mb-4">This is the system telling you what to teach it. One click per gap — no prompt engineering, no retraining.</p>
         {data.unanswered.length === 0 ? (
           <p className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-3">🎉 Nothing unanswered — your knowledge base covers everything asked so far.</p>
         ) : data.unanswered.map((u, i) => (
-          <div key={i} className="flex items-center justify-between gap-4 py-3 border-b border-slate-50 last:border-0">
+          <div key={i} className="flex items-center justify-between gap-4 py-3 border-b border-stone-50 last:border-0">
             <div className="min-w-0">
-              <p className="font-medium text-slate-800 text-sm">💬 {u.question}</p>
-              <p className="text-xs text-slate-400 mt-0.5">asked {u.count}× · latest {u.latest?.slice(0, 10)}</p>
+              <p className="font-medium text-stone-800 text-sm">💬 {u.question}</p>
+              <p className="text-xs text-stone-400 mt-0.5">asked {u.count}× · latest {u.latest?.slice(0, 10)}</p>
             </div>
             <button className="btn btn-primary btn-sm shrink-0" onClick={() => { setTeaching(u); setAnswer(''); }}>
               Teach it →
@@ -526,11 +526,11 @@ function InsightsTab({ kb }) {
       {data.deadDocs.length > 0 && (
         <div className="card card-pad">
           <h3 className="font-bold mb-1">🪦 Dead content</h3>
-          <p className="text-sm text-slate-500 mb-3">Never cited in 30 days. Consider pruning to keep retrieval sharp.</p>
+          <p className="text-sm text-stone-500 mb-3">Never cited in 30 days. Consider pruning to keep retrieval sharp.</p>
           {data.deadDocs.map((d) => (
-            <div key={d.id} className="flex justify-between py-2 border-b border-slate-50 last:border-0 text-sm">
-              <span className="text-slate-600">📄 {d.filename}</span>
-              <span className="text-xs text-slate-400">{d.chunk_count} chunks</span>
+            <div key={d.id} className="flex justify-between py-2 border-b border-stone-50 last:border-0 text-sm">
+              <span className="text-stone-600">📄 {d.filename}</span>
+              <span className="text-xs text-stone-400">{d.chunk_count} chunks</span>
             </div>
           ))}
         </div>
@@ -540,8 +540,8 @@ function InsightsTab({ kb }) {
         <Modal onClose={() => setTeaching(null)} wide>
           <div className="p-6">
             <h3 className="font-bold text-lg mb-1">🧠 Teach it</h3>
-            <p className="text-sm text-slate-500 mb-4">Write the correct answer once — it's embedded into the knowledge base instantly and cited like any other document.</p>
-            <div className="bg-violet-50 border border-violet-100 rounded-xl px-4 py-3 text-sm font-medium text-violet-900 mb-4">
+            <p className="text-sm text-stone-500 mb-4">Write the correct answer once — it's embedded into the knowledge base instantly and cited like any other document.</p>
+            <div className="bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 text-sm font-medium text-amber-900 mb-4">
               💬 {teaching.question}
             </div>
             <form onSubmit={teach}>
@@ -581,12 +581,12 @@ function AnalyticsTab({ kb }) {
       <div className="grid md:grid-cols-2 gap-4">
         <div className="card card-pad">
           <h3 className="font-bold mb-4">Questions — last 14 days</h3>
-          {a.byDay.length === 0 ? <p className="text-sm text-slate-400">No questions yet.</p> : (
+          {a.byDay.length === 0 ? <p className="text-sm text-stone-400">No questions yet.</p> : (
             <div className="flex items-end gap-1.5 h-36">
               {a.byDay.map((d) => (
                 <div key={d.day} className="flex-1 flex flex-col items-center gap-1" title={`${d.day}: ${d.c}`}>
-                  <div className="w-full rounded-t-lg" style={{ height: `${Math.max(6, (d.c / maxDay) * 120)}px`, background: 'linear-gradient(180deg,#a78bfa,#7c3aed)' }} />
-                  <span className="text-[10px] text-slate-400">{d.day.slice(5)}</span>
+                  <div className="w-full rounded-t-lg" style={{ height: `${Math.max(6, (d.c / maxDay) * 120)}px`, background: 'linear-gradient(180deg,#a78bfa,#D97706)' }} />
+                  <span className="text-[10px] text-stone-400">{d.day.slice(5)}</span>
                 </div>
               ))}
             </div>
@@ -594,10 +594,10 @@ function AnalyticsTab({ kb }) {
         </div>
         <div className="card card-pad">
           <h3 className="font-bold mb-4">Most-cited documents</h3>
-          {a.topDocs.length === 0 ? <p className="text-sm text-slate-400">No citations yet.</p> :
+          {a.topDocs.length === 0 ? <p className="text-sm text-stone-400">No citations yet.</p> :
             a.topDocs.map((d, i) => (
-              <div key={i} className="flex justify-between py-2 border-b border-slate-50 last:border-0 text-sm">
-                <span className="truncate font-medium text-slate-700">📄 {d.filename}</span>
+              <div key={i} className="flex justify-between py-2 border-b border-stone-50 last:border-0 text-sm">
+                <span className="truncate font-medium text-stone-700">📄 {d.filename}</span>
                 <span className="badge badge-violet ml-2">{d.c} cites</span>
               </div>
             ))}
@@ -605,11 +605,11 @@ function AnalyticsTab({ kb }) {
       </div>
       <div className="card card-pad mt-4">
         <h3 className="font-bold mb-3">Recent questions</h3>
-        {a.recent.length === 0 ? <p className="text-sm text-slate-400">None yet.</p> :
+        {a.recent.length === 0 ? <p className="text-sm text-stone-400">None yet.</p> :
           a.recent.map((q, i) => (
-            <div key={i} className="py-2 border-b border-slate-50 last:border-0 text-sm flex justify-between gap-4">
-              <span className="text-slate-700 truncate">💬 {q.content}</span>
-              <span className="text-xs text-slate-400 shrink-0">{q.created_at?.slice(0, 16).replace('T', ' ')}</span>
+            <div key={i} className="py-2 border-b border-stone-50 last:border-0 text-sm flex justify-between gap-4">
+              <span className="text-stone-700 truncate">💬 {q.content}</span>
+              <span className="text-xs text-stone-400 shrink-0">{q.created_at?.slice(0, 16).replace('T', ' ')}</span>
             </div>
           ))}
       </div>
@@ -645,7 +645,7 @@ function ShareTab({ kb, reload }) {
             {kb.public_enabled ? 'Disable' : 'Enable'}
           </button>
         </div>
-        <p className="text-sm text-slate-500 mb-3">Anyone with the link can chat with this knowledge base — no login required. Great for customer support.</p>
+        <p className="text-sm text-stone-500 mb-3">Anyone with the link can chat with this knowledge base — no login required. Great for customer support.</p>
         {kb.public_enabled && (
           <div className="flex gap-2">
             <input className="input" readOnly value={shareUrl} onClick={(e) => e.target.select()} />
@@ -655,8 +655,8 @@ function ShareTab({ kb, reload }) {
       </div>
       <div className="card card-pad">
         <h3 className="font-bold mb-2">🧩 Embeddable widget</h3>
-        <p className="text-sm text-slate-500 mb-3">Drop this on any website for a floating chat bubble powered by this knowledge base.</p>
-        <div className="bg-slate-900 rounded-xl p-4 relative">
+        <p className="text-sm text-stone-500 mb-3">Drop this on any website for a floating chat bubble powered by this knowledge base.</p>
+        <div className="bg-stone-900 rounded-xl p-4 relative">
           <code className="text-emerald-300 text-xs break-all">{embedCode}</code>
         </div>
         <button className="btn btn-outline btn-sm mt-3" onClick={() => { navigator.clipboard.writeText(embedCode); toast.success('Copied'); }}>Copy embed code</button>
@@ -715,12 +715,12 @@ function SettingsTab({ kb, reload }) {
       <div className="card card-pad mb-4">
         <h3 className="font-bold mb-4">AI behavior</h3>
         <Field label="System prompt" hint="Leave blank for the default grounded-answering prompt."><textarea className="input" rows={4} value={form.system_prompt} onChange={set('system_prompt')} placeholder="You are a helpful support agent…" /></Field>
-        <div className="flex items-start gap-3 mt-2 p-4 rounded-xl" style={{ background: '#faf8ff', border: '1px solid #ede9fe' }}>
-          <input type="checkbox" id="webfb" className="mt-1 w-4 h-4 accent-violet-600"
+        <div className="flex items-start gap-3 mt-2 p-4 rounded-xl" style={{ background: '#FBF3E4', border: '1px solid #FBEED3' }}>
+          <input type="checkbox" id="webfb" className="mt-1 w-4 h-4 accent-amber-700"
             checked={form.web_fallback} onChange={(e) => setForm({ ...form, web_fallback: e.target.checked })} />
           <label htmlFor="webfb" className="text-sm">
-            <strong className="text-slate-800">🌐 Web fallback</strong>
-            <span className="text-slate-500 block mt-0.5">When your documents don't have the answer, search the internet and answer with clearly-labeled web citations. Requires <code>BRAVE_API_KEY</code> on the server.</span>
+            <strong className="text-stone-800">🌐 Web fallback</strong>
+            <span className="text-stone-500 block mt-0.5">When your documents don't have the answer, search the internet and answer with clearly-labeled web citations. Requires <code>BRAVE_API_KEY</code> on the server.</span>
           </label>
         </div>
       </div>

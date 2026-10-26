@@ -143,58 +143,58 @@ export default function WidgetPage({ slug, embed }) {
 
   if (err) return (
     <div className="min-h-screen flex items-center justify-center p-6 text-center">
-      <div><div className="text-4xl mb-3">🔒</div><p className="text-slate-500">{err}</p></div>
+      <div><div className="text-4xl mb-3">🔒</div><p className="text-stone-500">{err}</p></div>
     </div>
   );
-  if (!kb) return <div className="min-h-screen flex items-center justify-center text-slate-400 text-sm">Loading…</div>;
+  if (!kb) return <div className="min-h-screen flex items-center justify-center text-stone-400 text-sm">Loading…</div>;
 
   const wrap = embed ? 'h-screen' : 'min-h-screen';
   return (
     <div className={`${wrap} flex flex-col bg-white relative`}>
-      <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-3" style={{ background: 'linear-gradient(135deg,#0b1120,#1e1b4b)' }}>
-        <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'linear-gradient(135deg,#8b5cf6,#6d28d9)' }}>
+      <div className="px-5 py-4 border-b border-stone-100 flex items-center gap-3" style={{ background: 'linear-gradient(135deg,#17251F,#1e1b4b)' }}>
+        <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'linear-gradient(135deg,#D97706,#B45309)' }}>
           <span className="text-white font-black">A</span>
         </div>
         <div className="min-w-0 flex-1">
           <div className="text-white font-bold text-sm truncate">{kb.name}</div>
-          <div className="text-violet-200/60 text-xs truncate">{kb.org_name} · AI assistant</div>
+          <div className="text-amber-200/60 text-xs truncate">{kb.org_name} · AI assistant</div>
         </div>
         <button type="button" onClick={() => setShowHistory((s) => !s)} title="Chat history (last 24 hours)"
-          className="text-violet-200/80 hover:text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg hover:bg-white/10 shrink-0">
+          className="text-amber-200/80 hover:text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg hover:bg-white/10 shrink-0">
           🕘 History
         </button>
         <button type="button" onClick={newChat} title="Start a new chat"
-          className="text-violet-200/80 hover:text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg hover:bg-white/10 shrink-0">
+          className="text-amber-200/80 hover:text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg hover:bg-white/10 shrink-0">
           ＋ New
         </button>
       </div>
 
       {showHistory && (
         <div className="absolute left-0 right-0 top-[68px] bottom-0 z-20 bg-white flex flex-col">
-          <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
-            <div className="font-semibold text-sm text-slate-800">Your chats — last 24 hours</div>
-            <button type="button" className="text-slate-400 hover:text-slate-700 text-lg leading-none" onClick={() => setShowHistory(false)}>✕</button>
+          <div className="px-4 py-3 border-b border-stone-100 flex items-center justify-between">
+            <div className="font-semibold text-sm text-stone-800">Your chats — last 24 hours</div>
+            <button type="button" className="text-stone-400 hover:text-stone-700 text-lg leading-none" onClick={() => setShowHistory(false)}>✕</button>
           </div>
           <div className="flex-1 overflow-y-auto p-3 space-y-1.5">
             <button type="button" onClick={newChat}
-              className="w-full text-left px-3 py-2.5 rounded-xl text-sm font-semibold text-violet-700 bg-violet-50 hover:bg-violet-100">
+              className="w-full text-left px-3 py-2.5 rounded-xl text-sm font-semibold text-amber-800 bg-amber-50 hover:bg-amber-100">
               ＋ Start a new chat
             </button>
             {convos.length === 0 && (
-              <p className="text-xs text-slate-400 px-2 py-3">No earlier chats in the last 24 hours.</p>
+              <p className="text-xs text-stone-400 px-2 py-3">No earlier chats in the last 24 hours.</p>
             )}
             {convos.map((c) => (
               <button key={c.id} type="button" onClick={() => openConvo(c.id)}
-                className={`w-full text-left px-3 py-2.5 rounded-xl text-sm transition-colors ${convoId === c.id ? 'bg-violet-50 text-violet-900 font-semibold' : 'text-slate-600 hover:bg-slate-50'}`}>
+                className={`w-full text-left px-3 py-2.5 rounded-xl text-sm transition-colors ${convoId === c.id ? 'bg-amber-50 text-amber-900 font-semibold' : 'text-stone-600 hover:bg-stone-50'}`}>
                 <span className="block truncate">💬 {c.title}</span>
-                <span className="block text-[11px] text-slate-400 mt-0.5">{fmtWhen(c.created_at)} · {c.msg_count} messages</span>
+                <span className="block text-[11px] text-stone-400 mt-0.5">{fmtWhen(c.created_at)} · {c.msg_count} messages</span>
               </button>
             ))}
           </div>
         </div>
       )}
 
-      {!embed && kb.description && <p className="px-5 py-3 text-sm text-slate-500 bg-slate-50 border-b">{kb.description}</p>}
+      {!embed && kb.description && <p className="px-5 py-3 text-sm text-stone-500 bg-stone-50 border-b">{kb.description}</p>}
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {messages.length === 0 && (
           <div className="chat-bubble-ai">
@@ -219,11 +219,11 @@ export default function WidgetPage({ slug, embed }) {
         ))}
         <div ref={bottomRef} />
       </div>
-      <form onSubmit={send} className="p-3 border-t border-slate-100 flex gap-2">
+      <form onSubmit={send} className="p-3 border-t border-stone-100 flex gap-2">
         <input className="input !py-2.5" value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask a question…" disabled={streaming} />
         <button className="btn btn-primary btn-sm !px-4" disabled={streaming || !input.trim()}>➤</button>
       </form>
-      <div className="text-center pb-2"><span className="text-[10px] text-slate-300">Powered by ClaimPaid AI</span></div>
+      <div className="text-center pb-2"><span className="text-[10px] text-stone-300">Powered by ClaimPaid AI</span></div>
     </div>
   );
 }

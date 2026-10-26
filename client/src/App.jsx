@@ -56,8 +56,11 @@ export default function App() {
             <span className="text-white text-2xl font-black">A</span>
           </div>
           <h1 className="text-white text-2xl font-bold mb-2">ClaimPaid AI isn't on your plan</h1>
-          <p className="text-violet-200/70 text-sm mb-6">Your RCM Starter subscription covers the RCM dashboard only. Upgrade to RCM Pro + AI to unlock the AI assistant.</p>
-          <a href="/app/" className="btn btn-primary w-full !py-3">Back to the RCM app →</a>
+          <p className="text-violet-200/70 text-sm mb-6">Your RCM Starter subscription covers the RCM dashboard only. Upgrade to RCM Pro + AI to unlock the AI assistant — it takes one click, no new signup.</p>
+          <div className="space-y-3">
+            <a href="/app/?plan=pro" className="btn btn-primary w-full !py-3">Upgrade to RCM Pro + AI →</a>
+            <a href="/app/" className="btn w-full !py-3 !bg-white/10 !text-white hover:!bg-white/20">Back to the RCM app</a>
+          </div>
         </div>
       </div>
     );

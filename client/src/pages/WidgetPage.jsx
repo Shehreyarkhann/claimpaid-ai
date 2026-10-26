@@ -152,7 +152,7 @@ export default function WidgetPage({ slug, embed }) {
   return (
     <div className={`${wrap} flex flex-col bg-white relative`}>
       <div className="px-5 py-4 border-b border-stone-100 flex items-center gap-3" style={{ background: 'linear-gradient(135deg,#17251F,#24382E)' }}>
-        <img src="/app/claimpaid-icon.webp" alt="ClaimPaid" className="w-9 h-9 rounded-xl shrink-0 shadow-[0_4px_14px_rgba(14,159,110,0.4)]" />
+        
         <div className="min-w-0 flex-1">
           <div className="text-white font-bold text-sm truncate">{kb.name}</div>
           <div className="text-stone-300 text-xs truncate">{kb.org_name} · AI assistant</div>

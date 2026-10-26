@@ -50,13 +50,11 @@ export default function App() {
   // RCM-Starter-only subscribers don't get the AI app
   if (user && products && products.ai === false) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-6" style={{ background: 'linear-gradient(135deg,#17251F 0%,#1e1b4b 60%,#312e81 100%)' }}>
+      <div className="min-h-screen flex items-center justify-center px-6" style={{ background: 'linear-gradient(135deg,#17251F 0%,#1F3128 55%,#3A2E1E 130%)' }}>
         <div className="max-w-md w-full text-center">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4" style={{ background: 'linear-gradient(135deg,#D97706,#B45309)' }}>
-            <span className="text-white text-2xl font-black">A</span>
-          </div>
+          <img src="/app/claimpaid-icon.webp" alt="ClaimPaid" className="inline-block w-14 h-14 rounded-2xl mb-4 shadow-[0_8px_28px_rgba(14,159,110,0.45)]" />
           <h1 className="text-white text-2xl font-bold mb-2">ClaimPaid AI isn't on your plan</h1>
-          <p className="text-amber-200/70 text-sm mb-6">Your RCM Starter subscription covers the RCM dashboard only. Upgrade to RCM Pro + AI to unlock the AI assistant — it takes one click, no new signup.</p>
+          <p className="text-stone-300 text-sm mb-6">Your RCM Starter subscription covers the RCM dashboard only. Upgrade to RCM Pro + AI to unlock the AI assistant — it takes one click, no new signup.</p>
           <div className="space-y-3">
             <a href="/app/?plan=pro" className="btn btn-primary w-full !py-3">Upgrade to RCM Pro + AI →</a>
             <a href="/app/" className="btn w-full !py-3 !bg-white/10 !text-white hover:!bg-white/20">Back to the RCM app</a>

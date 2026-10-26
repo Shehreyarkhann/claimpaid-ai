@@ -151,20 +151,18 @@ export default function WidgetPage({ slug, embed }) {
   const wrap = embed ? 'h-screen' : 'min-h-screen';
   return (
     <div className={`${wrap} flex flex-col bg-white relative`}>
-      <div className="px-5 py-4 border-b border-stone-100 flex items-center gap-3" style={{ background: 'linear-gradient(135deg,#17251F,#1e1b4b)' }}>
-        <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'linear-gradient(135deg,#D97706,#B45309)' }}>
-          <span className="text-white font-black">A</span>
-        </div>
+      <div className="px-5 py-4 border-b border-stone-100 flex items-center gap-3" style={{ background: 'linear-gradient(135deg,#17251F,#24382E)' }}>
+        <img src="/app/claimpaid-icon.webp" alt="ClaimPaid" className="w-9 h-9 rounded-xl shrink-0 shadow-[0_4px_14px_rgba(14,159,110,0.4)]" />
         <div className="min-w-0 flex-1">
           <div className="text-white font-bold text-sm truncate">{kb.name}</div>
-          <div className="text-amber-200/60 text-xs truncate">{kb.org_name} · AI assistant</div>
+          <div className="text-stone-300 text-xs truncate">{kb.org_name} · AI assistant</div>
         </div>
         <button type="button" onClick={() => setShowHistory((s) => !s)} title="Chat history (last 24 hours)"
-          className="text-amber-200/80 hover:text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg hover:bg-white/10 shrink-0">
+          className="text-stone-300 hover:text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg hover:bg-white/10 shrink-0">
           🕘 History
         </button>
         <button type="button" onClick={newChat} title="Start a new chat"
-          className="text-amber-200/80 hover:text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg hover:bg-white/10 shrink-0">
+          className="text-stone-300 hover:text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg hover:bg-white/10 shrink-0">
           ＋ New
         </button>
       </div>
@@ -177,7 +175,7 @@ export default function WidgetPage({ slug, embed }) {
           </div>
           <div className="flex-1 overflow-y-auto p-3 space-y-1.5">
             <button type="button" onClick={newChat}
-              className="w-full text-left px-3 py-2.5 rounded-xl text-sm font-semibold text-amber-800 bg-amber-50 hover:bg-amber-100">
+              className="w-full text-left px-3 py-2.5 rounded-xl text-sm font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100">
               ＋ Start a new chat
             </button>
             {convos.length === 0 && (
@@ -185,7 +183,7 @@ export default function WidgetPage({ slug, embed }) {
             )}
             {convos.map((c) => (
               <button key={c.id} type="button" onClick={() => openConvo(c.id)}
-                className={`w-full text-left px-3 py-2.5 rounded-xl text-sm transition-colors ${convoId === c.id ? 'bg-amber-50 text-amber-900 font-semibold' : 'text-stone-600 hover:bg-stone-50'}`}>
+                className={`w-full text-left px-3 py-2.5 rounded-xl text-sm transition-colors ${convoId === c.id ? 'bg-emerald-50 text-emerald-900 font-semibold' : 'text-stone-600 hover:bg-stone-50'}`}>
                 <span className="block truncate">💬 {c.title}</span>
                 <span className="block text-[11px] text-stone-400 mt-0.5">{fmtWhen(c.created_at)} · {c.msg_count} messages</span>
               </button>

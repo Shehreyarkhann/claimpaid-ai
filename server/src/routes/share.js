@@ -115,7 +115,7 @@ router.get('/widget.js', (req, res) => {
   var btn = document.createElement('button');
   btn.innerHTML = '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>';
   btn.setAttribute('aria-label', 'Chat with us');
-  btn.style.cssText = 'position:fixed;bottom:24px;right:24px;width:60px;height:60px;border-radius:50%;border:none;cursor:pointer;background:linear-gradient(135deg,#8b5cf6,#6d28d9);box-shadow:0 8px 28px rgba(139,92,246,.45);z-index:999998;display:flex;align-items:center;justify-content:center;';
+  btn.style.cssText = 'position:fixed;bottom:24px;right:24px;width:60px;height:60px;border-radius:50%;border:none;cursor:pointer;background:linear-gradient(135deg,#10B981,#0A7A54);box-shadow:0 8px 28px rgba(14,159,110,.45);z-index:999998;display:flex;align-items:center;justify-content:center;';
   var frame = document.createElement('iframe');
   frame.src = host + '/app/widget/' + slug;
   frame.style.cssText = 'position:fixed;bottom:100px;right:24px;width:400px;max-width:calc(100vw - 48px);height:560px;max-height:calc(100vh - 140px);border:none;border-radius:20px;box-shadow:0 24px 70px rgba(0,0,0,.3);z-index:999999;display:none;background:#fff;';

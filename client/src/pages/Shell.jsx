@@ -53,7 +53,7 @@ export default function Shell({ user, view, setView, children }) {
       </div>
       {!iconOnly && (
         <div className="min-w-0">
-          <div className="text-white font-bold text-[15px] leading-tight">ClaimPaid AI</div>
+          <div className="wordmark text-white font-bold text-[15px] leading-tight">ClaimPaid AI</div>
           <div className="text-stone-400 text-xs truncate">{org?.name || '…'}</div>
         </div>
       )}

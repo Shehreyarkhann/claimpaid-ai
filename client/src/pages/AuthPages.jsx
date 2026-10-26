@@ -64,7 +64,7 @@ export default function AuthPages({ onAuth }) {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <img src="/app/claimpaid-icon.webp" alt="ClaimPaid" className="w-14 h-14 rounded-2xl mb-4 mx-auto block" style={{ boxShadow: '0 8px 30px rgba(16,185,129,.35)' }} />
-          <h1 className="text-white text-3xl font-black tracking-tight">ClaimPaid AI</h1>
+          <h1 className="wordmark text-white text-3xl font-black tracking-tight">ClaimPaid AI</h1>
           <p className="text-amber-200/70 text-sm mt-2">Private AI answers from your documents</p>
         </div>
         <div className="card card-pad">

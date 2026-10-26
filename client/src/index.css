@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,900&family=Playfair+Display:wght@800&family=Inter:wght@400;500;600;700;800;900&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -28,6 +28,7 @@ body {
 
 /* ---------- type ---------- */
 h1 { font-family: 'Fraunces', Georgia, serif; }
+.wordmark { font-family: 'Playfair Display', Georgia, serif; font-weight: 800; letter-spacing: -0.01em; }
 .page-title { font-family: 'Fraunces', Georgia, serif; font-size: 28px; font-weight: 900; letter-spacing: -0.01em; color: #211A13; }
 .page-sub { font-size: 14px; color: #78716C; margin-top: 4px; }
 .label { display: block; font-size: 13px; font-weight: 600; color: #453B2F; margin-bottom: 6px; }

@@ -3,6 +3,11 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<script>
+/* Logged-in visitors skip the marketing page: valid session (either app's
+   token — one shared login) goes straight to the AI app. */
+(function(){try{var keys=['pulse_token','askbase_token'];for(var i=0;i<keys.length;i++){var t=localStorage.getItem(keys[i]);if(!t)continue;var b=t.split('.')[1];if(!b)continue;var p=JSON.parse(decodeURIComponent(escape(atob(b.replace(/-/g,'+').replace(/_/g,'/')))));if(p.exp&&p.exp*1000>Date.now()){location.replace('/ai/app/');return;}}}catch(e){}})();
+</script>
 <title>ClaimPaid AI — Private AI Assistant for Your Documents | $99/mo</title>
 <meta name="description" content="ClaimPaid AI turns your PDFs, policies, and payer documents into a private AI assistant that answers in plain language — with citations. Self-hosted, no data ever leaves your servers. $99/mo, 1 month free." />
 <meta name="keywords" content="private AI assistant, document AI, AI chatbot for business, self-hosted AI, RAG chatbot, AI for healthcare billing, payer policy AI, private ChatGPT alternative, HIPAA-conscious AI" />

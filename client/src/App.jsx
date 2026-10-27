@@ -52,7 +52,7 @@ export default function App() {
     return (
       <div className="min-h-screen flex items-center justify-center px-6" style={{ background: 'linear-gradient(135deg,#17251F 0%,#1F3128 55%,#3A2E1E 130%)' }}>
         <div className="max-w-md w-full text-center">
-          <img src="/app/claimpaid-icon.webp" alt="ClaimPaid" className="inline-block w-14 h-14 rounded-2xl mb-4 shadow-[0_8px_28px_rgba(14,159,110,0.45)]" />
+          <img src="/app/claimpaid-icon-reverse.webp" alt="ClaimPaid" className="inline-block w-14 h-14 rounded-2xl mb-4 shadow-[0_8px_28px_rgba(14,159,110,0.45)]" />
           <h1 className="text-white text-2xl font-bold mb-2">ClaimPaid AI isn't on your plan</h1>
           <p className="text-stone-300 text-sm mb-6">Your RCM Starter subscription covers the RCM dashboard only. Upgrade to RCM Pro + AI to unlock the AI assistant — it takes one click, no new signup.</p>
           <div className="space-y-3">

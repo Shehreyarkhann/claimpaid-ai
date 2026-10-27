@@ -48,7 +48,7 @@ export default function Shell({ user, view, setView, children }) {
 
   const brand = (iconOnly) => (
     <div onClick={() => go('kbs')} title="ClaimPaid AI home" className={`flex items-center ${iconOnly ? 'justify-center' : 'gap-3'} px-1 cursor-pointer`}>
-      <img src="/app/claimpaid-icon.webp" alt="ClaimPaid" className="w-10 h-10 rounded-xl shrink-0 shadow-[0_4px_14px_rgba(14,159,110,0.4)]" />
+      <img src="/app/claimpaid-icon-reverse.webp" alt="ClaimPaid" className="w-10 h-10 rounded-xl shrink-0 shadow-[0_4px_14px_rgba(14,159,110,0.4)]" />
       {!iconOnly && (
         <div className="min-w-0">
           <div className="wordmark text-white font-bold text-[15px] leading-tight">ClaimPaid AI</div>

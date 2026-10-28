@@ -8,26 +8,26 @@
    token — one shared login) goes straight to the AI app. */
 (function(){try{var keys=['pulse_token','askbase_token'];for(var i=0;i<keys.length;i++){var t=localStorage.getItem(keys[i]);if(!t)continue;var b=t.split('.')[1];if(!b)continue;var p=JSON.parse(decodeURIComponent(escape(atob(b.replace(/-/g,'+').replace(/_/g,'/')))));if(p.exp&&p.exp*1000>Date.now()){location.replace('/ai/app/');return;}}}catch(e){}})();
 </script>
-<title>ClaimPaid AI — Private AI Assistant for Your Documents | $99/mo</title>
-<meta name="description" content="ClaimPaid AI turns your PDFs, policies, and payer documents into a private AI assistant that answers in plain language — with citations. Self-hosted, no data ever leaves your servers. $99/mo, 1 month free." />
-<meta name="keywords" content="private AI assistant, document AI, AI chatbot for business, self-hosted AI, RAG chatbot, AI for healthcare billing, payer policy AI, private ChatGPT alternative, HIPAA-conscious AI" />
+<title>ClaimPaid AI — Handbook Answers & Quote-Verified Coding for Billing Teams | $99/mo</title>
+<meta name="description" content="ClaimPaid AI is the knowledge layer of ClaimPaid: cited answers from the Payer Policy Handbook, a coding assistant that only calls a code Valid when your documentation supports it, and cited answers over your own documents. $99/mo, 1 month free." />
+<meta name="keywords" content="payer policy handbook AI, AI medical coding assistant, document AI for billing teams, cited AI answers, AI for healthcare billing, denial codes, timely filing limits, billing knowledge base" />
 <link rel="canonical" href="https://claimpaid.io/ai/" />
 <meta name="robots" content="index, follow" />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="ClaimPaid" />
-<meta property="og:title" content="ClaimPaid AI — Private AI answers from your documents" />
-<meta property="og:description" content="Upload documents, get cited AI answers. Runs on your own servers — your data never leaves. $99/mo, 1 month free." />
+<meta property="og:title" content="ClaimPaid AI — Handbook answers & quote-verified coding" />
+<meta property="og:description" content="Cited answers from the Payer Policy Handbook, coding suggestions that show their evidence — or abstain — and cited answers over your own documents. $99/mo, 1 month free." />
 <meta property="og:url" content="https://claimpaid.io/ai/" />
 <meta property="og:image" content="https://claimpaid.io/app/claimpaid-icon.webp" />
 <meta name="twitter:card" content="summary" />
-<meta name="twitter:title" content="ClaimPaid AI — Private AI answers from your documents" />
-<meta name="twitter:description" content="A private AI assistant over your documents. Self-hosted, cited answers, $99/mo." />
+<meta name="twitter:title" content="ClaimPaid AI — Handbook answers & quote-verified coding" />
+<meta name="twitter:description" content="Cited handbook answers and a coding assistant that shows its evidence — or abstains. $99/mo." />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"SoftwareApplication","name":"ClaimPaid AI","applicationCategory":"BusinessApplication","operatingSystem":"Web","url":"https://claimpaid.io/ai/","description":"Private AI assistant that answers questions from your documents with citations. Self-hosted — data never leaves your servers.","offers":{"@type":"Offer","price":"99","priceCurrency":"USD","description":"Per month, 1 month free trial"},"provider":{"@type":"Organization","name":"ClaimPaid","url":"https://claimpaid.io"}}
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"ClaimPaid AI","applicationCategory":"BusinessApplication","operatingSystem":"Web","url":"https://claimpaid.io/ai/","description":"The knowledge layer of ClaimPaid: cited answers from the Payer Policy Handbook, a quote-verified coding assistant over a 370-code library, and cited answers over your own documents — per-workspace, never pooled across customers.","offers":{"@type":"Offer","price":"99","priceCurrency":"USD","description":"Per month, 1 month free trial"},"provider":{"@type":"Organization","name":"ClaimPaid","url":"https://claimpaid.io"}}
 </script>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
-{"@type":"Question","name":"Where does the AI run? Is my data sent to OpenAI?","acceptedAnswer":{"@type":"Answer","text":"No. ClaimPaid AI runs its language model on our own servers. Your documents are chunked, embedded, and queried entirely inside our infrastructure — nothing is sent to OpenAI, Google, or any third-party AI API."}},
+{"@type":"Question","name":"Is my data used to train answers for other customers?","acceptedAnswer":{"@type":"Answer","text":"No. Every workspace is isolated: your documents are searchable only inside your workspace, and anything ClaimPaid learns from your work — coding decisions, decided appeals — applies only to your workspace. Data is never pooled across customers."}},
 {"@type":"Question","name":"What documents can I upload?","acceptedAnswer":{"@type":"Answer","text":"PDF, Word (.docx), plain text, Markdown, and CSV — plus direct import from any public URL. Payer policy PDFs work great."}},
 {"@type":"Question","name":"Will it hallucinate?","acceptedAnswer":{"@type":"Answer","text":"It is grounded: answers are written from retrieved passages, and every factual claim carries a citation you can click to verify. When your documents don't contain the answer, it says so instead of inventing one."}},
 {"@type":"Question","name":"Do I need a separate login from ClaimPaid RCM?","acceptedAnswer":{"@type":"Answer","text":"No — one ClaimPaid account works for both. If you're already signed into the RCM app, the AI app just works."}},
@@ -122,38 +122,38 @@
   </nav>
 
   <div class="hero">
-    <div class="pill">🔒 Private by design — no data ever leaves our servers</div>
-    <h1>Ask your documents <span class="grad">anything</span></h1>
-    <p class="sub">ClaimPaid AI turns your PDFs, payer policies, and procedures into a private assistant that answers in plain language — with citations to the exact source. Built for teams that can't send sensitive documents to public AI.</p>
+    <div class="pill">📚 For billing teams — handbook, coding, and your documents</div>
+    <h1>The payer handbook, answered. <span class="grad">The coding, verified.</span></h1>
+    <p class="sub">ClaimPaid AI is the knowledge layer behind ClaimPaid's agent: cited answers from the Payer Policy Handbook, coding suggestions that quote your documentation back as evidence — or honestly abstain — and cited answers over your own policies and contracts.</p>
     <div class="hero-cta">
       <a class="btn btn-primary" href="/ai/app/">Start 1 month free →</a>
       <a class="btn btn-outline" href="/ai/app/">Try the live demo</a>
     </div>
-    <p class="micro">$99/mo after trial · Cancel anytime · Your documents stay yours</p>
+    <p class="micro">$99/mo after trial · Cancel anytime · Per-workspace — your data is never pooled</p>
   </div>
 </div>
 
 <div class="wrap">
   <section class="block" id="features">
     <div class="kicker">Why ClaimPaid AI</div>
-    <h2>Generative answers, grounded in your documents</h2>
-    <p class="lead">Not copy-pasted passages. ClaimPaid AI reads your documents, understands the question, and writes a clear answer — every claim cited to its source.</p>
+    <h2>Answers with receipts — and the honesty to abstain</h2>
+    <p class="lead">Two engines, one rule: show the evidence or say so. The handbook answers cite their source; the coding assistant quotes your note or refuses the code.</p>
     <div class="grid3">
-      <div class="feat"><div class="ic">💬</div><h3>Real answers, well written</h3><p>Ask in plain language, get a clear explanation — structured with lists and key points where they help, not a wall of quoted text.</p></div>
+      <div class="feat"><div class="ic">📚</div><h3>Payer Policy Handbook</h3><p>Timely-filing limits, appeal windows, and denial-code rules for major payers, pre-loaded. Ask mid-appeal and get the answer with the source cited — the same handbook the ClaimPaid agent searches.</p></div>
       <div class="feat"><div class="ic">📎</div><h3>Citations on every claim</h3><p>Every factual statement links to the exact passage it came from. Click any citation to read the source yourself.</p></div>
-      <div class="feat"><div class="ic">🔒</div><h3>Private by architecture</h3><p>The AI runs on our own servers. Your documents are never sent to OpenAI, Google, or any third-party API — by design, not by policy.</p></div>
-      <div class="feat"><div class="ic">📄</div><h3>Any document, any source</h3><p>PDF, Word, text, markdown, CSV — plus one-click import from any URL. Chunked, embedded, and searchable automatically.</p></div>
-      <div class="feat"><div class="ic">🏥</div><h3>Built for revenue cycle</h3><p>Comes with a Payer Policy Handbook pre-loaded — timely filing limits, appeal windows, and denial codes for major payers.</p></div>
+      <div class="feat"><div class="ic">🧾</div><h3>Quote-verified coding</h3><p>A 370-code library with a hard rule: a suggestion is Valid only when your documentation supports it, with the supporting line quoted. Weak evidence is Review. No evidence is an Abstain — never a guess dressed up as a code.</p></div>
+      <div class="feat"><div class="ic">📄</div><h3>Your documents, answered</h3><p>PDF, Word, text, markdown, CSV — plus one-click import from any URL. Your payer contracts, policies, and manuals, chunked and searchable with cited answers.</p></div>
+      <div class="feat"><div class="ic">🤐</div><h3>Says so when it doesn't know</h3><p>Grounded means grounded: when your documents or the handbook don't contain the answer, it says that instead of inventing one — and points you at the payer or the document that's missing.</p></div>
+      <div class="feat"><div class="ic">🔒</div><h3>Per-workspace isolation</h3><p>Your documents are only ever searchable inside your own workspace, and what ClaimPaid learns from your work applies only to you. Data is never pooled across customers.</p></div>
       <div class="feat"><div class="ic">🧩</div><h3>Embeddable widget</h3><p>One script tag adds a floating chat bubble to any website, powered by your knowledge base.</p></div>
       <div class="feat"><div class="ic">🔑</div><h3>Developer API</h3><p>POST /api/v1/query with an API key and get answers + citations as JSON. Build it into your own product.</p></div>
-      <div class="feat"><div class="ic">📊</div><h3>Analytics that matter</h3><p>Top questions, no-answer rate, thumbs feedback, most-cited docs. See what your team asks and what your docs are missing.</p></div>
-      <div class="feat"><div class="ic">👥</div><h3>Teams & roles</h3><p>Multi-tenant workspaces with owner and member roles. Your documents are only ever searchable inside your own workspace.</p></div>
+      <div class="feat"><div class="ic">👥</div><h3>Teams & roles</h3><p>Multi-tenant workspaces with owner and member roles — and one shared login with the ClaimPaid RCM platform.</p></div>
     </div>
     <div class="privacy-strip">
       <div class="ic">🛡️</div>
       <div>
-        <h3>No training on your data. No third-party APIs. Ever.</h3>
-        <p>Public AI tools send your documents to someone else's servers. ClaimPaid AI runs its language model on infrastructure we control, so payer contracts, patient-adjacent documents, and internal policies stay inside your workspace. This is the architecture choice that makes AI usable for healthcare operations.</p>
+        <h3>Your data trains your workspace. Nobody else's.</h3>
+        <p>ClaimPaid AI is built per-workspace: your documents answer only your team's questions, and your coding decisions sharpen only your suggestions. Nothing is pooled across customers, and every answer carries the citation that lets a human check the work.</p>
       </div>
     </div>
   </section>
@@ -162,14 +162,14 @@
     <div class="kicker">How it works</div>
     <h2>Live in three steps</h2>
     <div class="steps">
-      <div class="step"><div class="num">1</div><h3>Upload documents</h3><p>Drop in PDFs, Word docs, or paste a URL. Text is extracted, split into passages, and indexed for semantic search — automatically.</p></div>
-      <div class="step"><div class="num">2</div><h3>Ask questions</h3><p>Every question is matched against your documents semantically. The AI then writes a clear, complete answer grounded in the most relevant passages.</p></div>
-      <div class="step"><div class="num">3</div><h3>Share everywhere</h3><p>Public link, embeddable website widget, or the developer API. Your knowledge base answers questions 24/7.</p></div>
+      <div class="step"><div class="num">1</div><h3>Start with the handbook</h3><p>The Payer Policy Handbook is pre-loaded — filing limits, appeal windows, denial codes. Add your own PDFs, Word docs, or a URL; text is extracted, split into passages, and indexed automatically.</p></div>
+      <div class="step"><div class="num">2</div><h3>Ask, or hand it a note</h3><p>Ask a policy question and get a cited answer. Paste a clinical note and get coding suggestions — each one Valid, Review, or Abstain, with the evidence quoted.</p></div>
+      <div class="step"><div class="num">3</div><h3>Put it to work</h3><p>Inside RCM Pro, the same handbook and coding engine work inside the agent — mid-appeal, mid-claim. Standalone, share it by public link, website widget, or the developer API.</p></div>
     </div>
     <div class="demo-box">
       <div>
         <h3>See a real answer</h3>
-        <p>Ask about timely filing limits, appeal windows, or denial codes — the demo knowledge base is a real payer policy handbook. Try it yourself, no signup needed.</p>
+        <p>Ask about timely filing limits, appeal windows, or denial codes — the demo knowledge base is the real Payer Policy Handbook. Try it yourself, no signup needed.</p>
         <a class="btn btn-primary" href="/ai/app/">Ask the demo →</a>
       </div>
       <div class="chat-mock">
@@ -185,10 +185,10 @@
     <p class="lead">Start with 1 month free. One subscription covers the whole AI platform — no tiers, no per-seat games.</p>
     <div class="pricing">
       <div class="tier hot"><div class="tag">1 MONTH FREE</div><h3>ClaimPaid AI</h3><div class="price">$99<span>/mo</span></div>
-        <ul><li>Unlimited knowledge bases</li><li>Unlimited documents</li><li>Generative cited answers</li><li>Widget + public links + API</li><li>Analytics dashboard</li><li>Private — data never leaves our servers</li></ul>
+        <ul><li>Payer Policy Handbook — cited answers</li><li>Quote-verified coding assistant</li><li>Cited answers over your own documents</li><li>Unlimited knowledge bases & documents</li><li>Widget + public links + API</li><li>Per-workspace isolation — never pooled</li></ul>
         <a class="btn btn-primary" style="width:100%;justify-content:center" href="/ai/app/">Start free trial</a></div>
       <div class="tier"><h3>RCM Pro + AI</h3><div class="price">$499<span>/mo</span></div>
-        <ul><li>Everything in ClaimPaid AI</li><li>Full RCM platform included</li><li>Denial appeals + auto letters</li><li>Timely filing radar</li><li>Smart worklists + reports</li></ul>
+        <ul><li>Everything in ClaimPaid AI</li><li>Full RCM platform included</li><li>The agent — brief, ranked queue, drafted appeals</li><li>Denial appeals + auto letters</li><li>Timely filing radar</li><li>Smart worklists + reports</li></ul>
         <a class="btn btn-outline" style="width:100%;justify-content:center" href="/app/?plan=pro&trial=1">Start free trial</a></div>
       <div class="tier"><h3>Enterprise</h3><div class="price">Custom</div>
         <ul><li>Everything in RCM Pro + AI</li><li>Custom KB training on your contracts</li><li>SSO / SAML</li><li>Audit logs</li><li>Dedicated support</li></ul>
@@ -200,9 +200,9 @@
     <div class="kicker">FAQ</div>
     <h2 style="text-align:center">Questions, answered</h2>
     <div class="faq">
-      <details><summary>Where does the AI run? Is my data sent to OpenAI?</summary><p>No. ClaimPaid AI runs its language model on our own servers. Your documents are chunked, embedded, and queried entirely inside our infrastructure — nothing is sent to OpenAI, Google, or any third-party AI API. That's the whole point.</p></details>
+      <details><summary>Is my data used to train answers for other customers?</summary><p>No. Every workspace is isolated: your documents are searchable only inside your workspace, and anything ClaimPaid learns from your work — coding decisions, decided appeals — applies only to your workspace. Data is never pooled across customers.</p></details>
       <details><summary>What documents can I upload?</summary><p>PDF, Word (.docx), plain text, Markdown, and CSV — plus direct import from any public URL. Payer policy PDFs work great.</p></details>
-      <details><summary>Will it hallucinate?</summary><p>It's grounded: answers are written from retrieved passages, and every factual claim carries a citation you can click to verify. When your documents don't contain the answer, it says so instead of inventing one.</p></details>
+      <details><summary>Will it hallucinate?</summary><p>It's grounded: answers are written from retrieved passages, and every factual claim carries a citation you can click to verify. When your documents don't contain the answer, it says so instead of inventing one. The coding assistant follows the same rule — a code is Valid only when your note supports it, quoted back to you; otherwise it's Review or an outright Abstain.</p></details>
       <details><summary>Do I need a separate login from ClaimPaid RCM?</summary><p>No — one ClaimPaid account works for both. If you're already signed into the RCM app, the AI app just works.</p></details>
       <details><summary>Can I use it on my website?</summary><p>Yes — paste one script tag and you get a floating chat bubble powered by your knowledge base. Or use the REST API to build it into your own product.</p></details>
     </div>
@@ -211,14 +211,14 @@
   <section class="block">
     <div class="cta">
       <h2>Your documents know the answers. Let them talk.</h2>
-      <p>Upload your policies once. Get clear, cited answers forever — privately.</p>
+      <p>Upload your policies once. Get clear, cited answers — and coding that shows its evidence.</p>
       <a class="btn btn-primary" style="font-size:16px;padding:15px 36px" href="/ai/app/">Start 1 month free →</a>
     </div>
   </section>
 
   <footer>
     <a class="logo" href="/"><img src="/app/claimpaid-icon.webp" alt="ClaimPaid" /> ClaimPaid <span style="color:#B45309">AI</span></a>
-    <span>Private AI answers from your documents · <a href="/">claimpaid.io</a> · <a href="mailto:support@claimpaid.io">support@claimpaid.io</a></span>
+    <span>Cited answers & verified coding for billing teams · <a href="/">claimpaid.io</a> · <a href="mailto:support@claimpaid.io">support@claimpaid.io</a></span>
   </footer>
 </div>
 </body>

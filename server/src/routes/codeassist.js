@@ -141,3 +141,6 @@ router.post('/code-assist', rcmServiceAuth, async (req, res) => {
 });
 
 module.exports = router;
+// Shared with routes/kbsearch.js — one service-to-service auth pattern for
+// every /api/v1 endpoint the RCM server calls.
+module.exports.rcmServiceAuth = rcmServiceAuth;

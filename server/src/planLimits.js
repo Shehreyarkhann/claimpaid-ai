@@ -15,7 +15,7 @@ const CANDIDATES = [
 const FALLBACK = {
   limitsForPlan(plan) {
     const table = {
-      starter: { price: 199, claimsPerMonth: 1000, seats: 3, aiQueriesPerMonth: 0 },
+      starter: { price: 199, claimsPerMonth: 1000, seats: 3, aiQueriesPerMonth: 100 },
       pro: { price: 499, claimsPerMonth: 10000, seats: 15, aiQueriesPerMonth: 2000 },
       ai: { price: 99, claimsPerMonth: 0, seats: 5, aiQueriesPerMonth: 1000 },
       enterprise: { price: null, claimsPerMonth: null, seats: null, aiQueriesPerMonth: null },

@@ -60,6 +60,40 @@ function getRcmPlan(rcmOrgId) {
   }
 }
 
+// Deploy #100 (account pools): the RCM org ids that share one account —
+// every org whose 'owner' is the same account holder as rcmOrgId's owner
+// (the earliest owner member). Mirrors rcm-dashboard/server/src/account.js.
+// Falls back to just [rcmOrgId] whenever the RCM DB can't answer.
+function accountRcmOrgIds(rcmOrgId) {
+  const db = rcmDb();
+  if (!db || !rcmOrgId) return rcmOrgId ? [rcmOrgId] : [];
+  try {
+    const owner = db.prepare(
+      "SELECT user_id FROM user_orgs WHERE org_id = ? AND role = 'owner' ORDER BY created_at ASC, user_id ASC LIMIT 1",
+    ).get(rcmOrgId);
+    if (!owner) return [rcmOrgId];
+    const ids = db.prepare(
+      "SELECT org_id FROM user_orgs WHERE user_id = ? AND role = 'owner' ORDER BY org_id ASC",
+    ).all(owner.user_id).map((r) => r.org_id);
+    return ids.length ? ids : [rcmOrgId];
+  } catch {
+    return [rcmOrgId];
+  }
+}
+
+// Agent turns metered in the RCM DB (agent_usage) for one org + month —
+// part of the merged AI-use pool the RCM side reports (deploy #89/#100).
+function agentTurnsThisMonth(rcmOrgId, monthKey) {
+  const db = rcmDb();
+  if (!db || !rcmOrgId) return 0;
+  try {
+    const row = db.prepare('SELECT turns FROM agent_usage WHERE org_id = ? AND month = ?').get(rcmOrgId, monthKey);
+    return row ? row.turns : 0;
+  } catch {
+    return 0; // agent_usage may not exist yet on older RCM DBs
+  }
+}
+
 // Block plans that don't include the AI product (e.g. RCM-Starter-only subscribers).
 // Must run after authRequired (which attaches req.products).
 function requireAiAccess(req, res, next) {
@@ -72,4 +106,4 @@ function requireAiAccess(req, res, next) {
   next();
 }
 
-module.exports = { productsForPlan, getRcmPlan, requireAiAccess };
+module.exports = { productsForPlan, getRcmPlan, requireAiAccess, accountRcmOrgIds, agentTurnsThisMonth, rcmDb };

@@ -15,14 +15,14 @@ const CANDIDATES = [
 const FALLBACK = {
   limitsForPlan(plan) {
     const table = {
-      starter: { price: 199, claimsPerMonth: 1000, seats: 3, aiQueriesPerMonth: 100 },
-      pro: { price: 499, claimsPerMonth: 10000, seats: 15, aiQueriesPerMonth: 2000 },
-      ai: { price: 99, claimsPerMonth: 0, seats: 5, aiQueriesPerMonth: 1000 },
-      enterprise: { price: null, claimsPerMonth: null, seats: null, aiQueriesPerMonth: null },
+      starter: { price: 199, claimsPerMonth: 1000, seats: 5, aiQueriesPerMonth: 100, workspaces: 1 },
+      pro: { price: 499, claimsPerMonth: 10000, seats: 15, aiQueriesPerMonth: 2000, workspaces: 3 },
+      ai: { price: 99, claimsPerMonth: 0, seats: 5, aiQueriesPerMonth: 1000, workspaces: 1 },
+      enterprise: { price: null, claimsPerMonth: null, seats: null, aiQueriesPerMonth: null, workspaces: null },
     };
     const row = table[plan];
     if (row) return { ...row };
-    return { price: null, claimsPerMonth: null, seats: null, aiQueriesPerMonth: null };
+    return { price: null, claimsPerMonth: null, seats: null, aiQueriesPerMonth: null, workspaces: null };
   },
 };
 

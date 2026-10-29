@@ -5,6 +5,7 @@
 // Limits refresh when the user re-logs-in (RCM tokens live 7 days).
 const { db } = require('./db');
 const { planLimits } = require('./planLimits');
+const { accountRcmOrgIds, agentTurnsThisMonth } = require('./plans');
 
 const UPGRADE_PATH = '/app/billing';
 
@@ -28,6 +29,19 @@ function aiUsage(rcmOrgId, now = new Date()) {
   return row ? row.queries : 0;
 }
 
+// ACCOUNT-POOLED AI usage (deploy #100): the plan's AI-use limit applies to
+// the sum across every RCM workspace the account owns — AskBase queries
+// (this DB, keyed per rcm_org_id) PLUS agent turns metered in the RCM DB —
+// mirroring the RCM side's merged total, so neither app can spend past the
+// pool through the other.
+function aiUsagePooled(rcmOrgId, now = new Date()) {
+  if (!rcmOrgId) return 0;
+  const mk = monthKeyUtc(now);
+  return accountRcmOrgIds(rcmOrgId).reduce(
+    (sum, id) => sum + aiUsage(id, now) + agentTurnsThisMonth(id, mk), 0,
+  );
+}
+
 function recordAiQuery(rcmOrgId) {
   if (!rcmOrgId) return;
   db.prepare(`
@@ -37,10 +51,12 @@ function recordAiQuery(rcmOrgId) {
 }
 
 // Synchronous quota check. Returns { allowed, used, limit, body }.
-// Grandfathered AI-issued tokens (no rcmOrgId) and unlimited plans are always allowed.
+// `used` is the ACCOUNT pool total (deploy #100): every workspace of the
+// account draws on the same AI-use allowance. Grandfathered AI-issued
+// tokens (no rcmOrgId) and unlimited plans are always allowed.
 function checkAiQuota(rcmOrgId, limit, plan) {
-  if (!rcmOrgId || limit === null || limit === undefined) return { allowed: true, used: aiUsage(rcmOrgId), limit };
-  const used = aiUsage(rcmOrgId);
+  if (!rcmOrgId || limit === null || limit === undefined) return { allowed: true, used: aiUsagePooled(rcmOrgId), limit };
+  const used = aiUsagePooled(rcmOrgId);
   if (used >= limit) {
     const planLabel = { starter: 'RCM Starter', pro: 'RCM Pro + AI', ai: 'ClaimPaid AI', enterprise: 'Enterprise' }[plan] || 'your';
     return {
@@ -73,4 +89,4 @@ function aiQuotaMiddleware(req, res, next) {
   }
 }
 
-module.exports = { monthKeyUtc, resolveAiLimit, aiUsage, recordAiQuery, checkAiQuota, aiQuotaMiddleware };
+module.exports = { monthKeyUtc, resolveAiLimit, aiUsage, aiUsagePooled, recordAiQuery, checkAiQuota, aiQuotaMiddleware };
